@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>상세페이지 빌더 v2 — 테마 교체형</title>
+<style>
+  :root{
+    --bg:#EAF0ED; --soft:#F2F6F4; --ink:#3E4A5B; --accent:#C4703F;
+    --badgeBg:#3E4A5B; --line:#E3E6E4; --panel:#FAFAF8; --muted:#9AA0A6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+    background:#F2F3F1; color:#111; -webkit-font-smoothing:antialiased}
+
+  header{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);padding:12px 22px;display:flex;align-items:center;gap:12px}
+  header h1{font-size:15px;font-weight:800;letter-spacing:-.02em}
+  header .tag{font-size:11px;color:#fff;background:#3E4A5B;padding:3px 8px;border-radius:99px;font-weight:700}
+  header .len{font-size:12px;color:#6B7280;font-weight:700;background:#F1F3F1;padding:5px 10px;border-radius:6px}
+  header .len b{color:#C4703F}
+  header .sp{flex:1}
+  header button{font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid var(--line);
+    background:#fff;color:#111;padding:8px 13px;border-radius:7px;transition:.15s}
+  header button:hover{border-color:#3E4A5B;color:#3E4A5B}
+  header button.primary{background:#3E4A5B;color:#fff;border-color:#3E4A5B}
+
+  .layout{display:grid;grid-template-columns:390px 1fr;min-height:calc(100vh - 55px)}
+  aside{border-right:1px solid var(--line);background:var(--panel);padding:18px;
+    overflow-y:auto;max-height:calc(100vh - 55px)}
+  main{padding:24px;overflow-y:auto;max-height:calc(100vh - 55px);display:flex;flex-direction:column;align-items:center}
+
+  .group{margin-bottom:18px}
+  .group>label{display:block;font-size:10.5px;font-weight:800;letter-spacing:.07em;color:var(--muted);
+    text-transform:uppercase;margin-bottom:8px}
+  .field{margin-bottom:8px}
+  .field span{display:block;font-size:10.5px;color:#8A9099;margin-bottom:4px;font-weight:600}
+  input[type=text]{width:100%;font-family:inherit;font-size:12.5px;padding:8px 10px;
+    border:1px solid var(--line);border-radius:6px;background:#fff;color:#111}
+  input[type=text]:focus{outline:none;border-color:#3E4A5B}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+  .picks{display:flex;gap:7px;flex-wrap:wrap}
+  .pick{width:44px;height:44px;border-radius:8px;border:2px solid transparent;cursor:pointer}
+  .pick.on{border-color:#111}
+  .shapes{display:flex;gap:7px;flex-wrap:wrap}
+  .shape{width:52px;height:52px;background:#fff;border:1px solid var(--line);border-radius:8px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px}
+  .shape.on{border-color:#111;background:#F4F6F4}
+  .shape i{display:block;width:26px;height:26px;background:#6B7280}
+  .shape i.c{border-radius:50%}
+  .shape i.s{border-radius:3px}
+  .shape i.r{clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%)}
+  .shape i.t{clip-path:polygon(0 0,100% 0,100% 100%,22% 100%,0 50%)}
+  .shape i.n{background:none;color:#6B7280;font-size:9px;font-weight:800;
+    display:flex;align-items:center;justify-content:center}
+
+  .upload{display:flex;align-items:center;gap:9px;padding:8px;border:1px dashed #C9CFCC;border-radius:7px;
+    background:#fff;cursor:pointer;margin-bottom:6px;transition:.15s}
+  .upload:hover{border-color:#3E4A5B}
+  .upload .thumb{width:32px;height:32px;border-radius:4px;background:#EAF0ED;flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#9AA0A6;overflow:hidden}
+  .upload .thumb img{width:100%;height:100%;object-fit:cover}
+  .upload .meta{flex:1;min-width:0}
+  .upload .meta b{display:block;font-size:11.5px;font-weight:700}
+  .upload .meta small{font-size:10px;color:var(--muted)}
+  .upload input{display:none}
+  .hint{font-size:10.5px;color:var(--muted);line-height:1.6;margin-top:5px}
+
+  /* ===== STAGE ===== */
+  .stage{width:600px;transform-origin:top center}
+  .block{width:600px;height:1050px;position:relative;overflow:hidden;background:#fff;
+    display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+  .block .img{position:absolute;inset:0;background-size:cover;background-position:center}
+  .ph{position:absolute;inset:0;background:
+      radial-gradient(circle at 50% 42%, rgba(255,255,255,.92), rgba(255,255,255,0) 58%),
+      linear-gradient(160deg,#EDF1EF,#DEE5E1);
+    display:flex;align-items:center;justify-content:center}
+  .ph span{font-size:11px;letter-spacing:.18em;color:#A8B0AC;font-weight:700}
+
+  .badge{position:relative;z-index:4;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;background:var(--badgeBg);color:#fff;flex:none}
+  .badge small{font-size:10.5px;letter-spacing:.12em;font-weight:700;opacity:.9}
+  .badge b{font-size:24px;font-weight:800;letter-spacing:-.01em;margin-top:1px}
+  .badge.circle{width:128px;height:128px;border-radius:50%;margin-top:-64px}
+  .badge.square{width:128px;height:128px;border-radius:6px;margin-top:-64px}
+  .badge.ribbon{width:190px;height:104px;margin-top:-52px;padding-bottom:14px;border-radius:2px;
+    clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%)}
+  .badge.tag{width:148px;height:92px;margin-top:-46px;
+    clip-path:polygon(0 0,100% 0,100% 100%,20% 100%,0 50%)}
+  .badge.none{background:none;color:var(--ink);margin-top:-38px}
+  .badge.none small{opacity:.55}
+
+  .b-hero .veil{position:absolute;left:0;right:0;top:0;height:48%;z-index:2;
+    background:linear-gradient(to bottom,rgba(18,24,30,.45),rgba(18,24,30,0))}
+  .b-hero .copy{position:relative;z-index:3;padding:100px 60px 0;text-align:center;color:#fff}
+  .b-hero .kicker{font-size:12.5px;letter-spacing:.16em;font-weight:600;opacity:.85;margin-bottom:22px}
+  .b-hero h2{font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.45;opacity:.95}
+  .b-hero h1{font-size:43px;font-weight:800;letter-spacing:-.03em;line-height:1.28;margin-top:6px}
+
+  .b-prob{background:var(--bg)}
+  .b-prob .photo{position:absolute;left:0;right:0;bottom:0;height:52%;overflow:hidden}
+  .b-prob .top{position:relative;z-index:3;padding:96px 60px 0;height:48%}
+  .b-prob .no{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--muted)}
+  .b-prob h1{font-size:35px;font-weight:800;letter-spacing:-.035em;line-height:1.34;color:var(--ink);margin-top:20px}
+  .b-prob p{font-size:16.5px;color:#5F6875;line-height:1.75;margin-top:20px}
+  .b-prob .q{font-size:18px;font-weight:700;color:var(--accent);margin-top:22px}
+
+  .b-trans{background:var(--ink);justify-content:center;align-items:center;text-align:center;padding:0 60px}
+  .b-trans h1{font-size:36px;font-weight:800;letter-spacing:-.03em;line-height:1.4;color:#fff}
+  .b-trans p{font-size:15px;color:rgba(255,255,255,.6);margin-top:22px;letter-spacing:.02em}
+
+  .b-sol .photo{position:absolute;left:0;right:0;top:0;height:58%;overflow:hidden}
+  .b-sol .copy{position:relative;z-index:3;margin-top:58%;padding:52px 60px 0;text-align:center}
+  .b-sol h2{font-size:22px;font-weight:600;color:var(--muted);letter-spacing:-.02em}
+  .b-sol h1{font-size:34px;font-weight:800;letter-spacing:-.035em;color:var(--ink);margin-top:12px;line-height:1.36}
+
+  .b-index{background:var(--soft);padding:100px 60px;justify-content:center}
+  .b-index .no{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--muted)}
+  .b-index h1{font-size:34px;font-weight:800;letter-spacing:-.035em;margin:16px 0 40px;line-height:1.32;color:var(--ink)}
+  .b-index ol{list-style:none}
+  .b-index li{display:flex;gap:18px;align-items:flex-start;padding:19px 0;border-bottom:1px solid rgba(0,0,0,.08)}
+  .b-index li b{font-size:13px;font-weight:800;color:var(--accent);flex:none;width:26px;padding-top:3px}
+  .b-index li .t{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.4;color:var(--ink)}
+
+  .b-pm{background:var(--bg)}
+  .b-pm .photo{position:absolute;left:0;right:0;top:0;height:62%;overflow:hidden}
+  .b-pm .lower{position:absolute;left:0;right:0;bottom:0;height:40%;padding:44px 60px 50px;
+    display:flex;flex-direction:column}
+  .b-pm h1{font-size:31px;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1.36;margin-top:26px}
+  .b-pm .en{font-size:13.5px;color:var(--muted);margin-top:auto;letter-spacing:.02em}
+
+  .b-pd{background:var(--soft);padding:96px 60px;justify-content:center}
+  .b-pd .tagline{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--accent)}
+  .b-pd h1{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.4;color:var(--ink);margin:16px 0 26px}
+  .b-pd p{font-size:16px;color:#5F6875;line-height:1.85}
+  .b-pd .stats{display:flex;gap:14px;margin-top:36px}
+  .b-pd .stat{flex:1;background:#fff;border-radius:10px;padding:22px 16px;text-align:center}
+  .b-pd .stat b{display:block;font-size:24px;font-weight:800;color:var(--accent);letter-spacing:-.02em}
+  .b-pd .stat small{display:block;font-size:10.5px;color:var(--muted);margin-top:6px;font-weight:600}
+
+  .b-emo{justify-content:flex-end}
+  .b-emo .veil{position:absolute;left:0;right:0;bottom:0;height:44%;z-index:2;
+    background:linear-gradient(to top,rgba(16,20,26,.55),rgba(16,20,26,0))}
+  .b-emo .copy{position:relative;z-index:3;padding:0 60px 96px;color:#fff;text-align:center}
+  .b-emo h1{font-size:29px;font-weight:700;letter-spacing:-.02em;line-height:1.5}
+
+  .b-gif{background:#111}
+  .b-gif .photo{position:absolute;left:0;right:0;top:12%;height:76%;overflow:hidden}
+  .b-gif .lbl{position:relative;z-index:3;margin-top:auto;margin-bottom:56px;text-align:center;
+    font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55);font-weight:700}
+
+  .b-tech{background:#111;padding:100px 60px;justify-content:center;color:#fff}
+  .b-tech .no{font-size:11px;letter-spacing:.16em;font-weight:800;color:rgba(255,255,255,.45)}
+  .b-tech h1{font-size:33px;font-weight:800;letter-spacing:-.03em;line-height:1.36;margin:18px 0 26px}
+  .b-tech p{font-size:15.5px;color:rgba(255,255,255,.72);line-height:1.85}
+  .b-tech .diagram{margin-top:40px;height:300px;border:1px dashed rgba(255,255,255,.22);border-radius:12px;
+    display:flex;align-items:center;justify-content:center;font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.35)}
+
+  .b-cert{background:#fff;padding:96px 60px;justify-content:center;text-align:center}
+  .b-cert h1{font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.36;color:var(--ink)}
+  .b-cert .frame{margin:40px 0 28px;height:400px;border:1px solid var(--line);border-radius:12px;
+    background:var(--soft);display:flex;align-items:center;justify-content:center;
+    font-size:11px;letter-spacing:.16em;color:var(--muted)}
+  .b-cert ul{list-style:none;text-align:left}
+  .b-cert li{font-size:14px;color:#5F6875;padding:9px 0;border-bottom:1px solid #F0F1EF}
+  .b-cert li b{color:var(--ink);margin-right:8px}
+
+  .b-test{background:var(--bg);padding:100px 60px;justify-content:center}
+  .b-test .q{font-size:52px;color:var(--accent);font-weight:800;line-height:1}
+  .b-test p{font-size:20px;font-weight:600;color:var(--ink);line-height:1.75;margin:24px 0 30px;letter-spacing:-.02em}
+  .b-test .who{font-size:13px;color:var(--muted)}
+
+  .b-pkg{background:#fff}
+  .b-pkg .photo{position:absolute;left:0;right:0;top:0;height:56%;overflow:hidden}
+  .b-pkg .copy{position:relative;z-index:3;margin-top:56%;padding:52px 60px 0}
+  .b-pkg h1{font-size:31px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+  .b-pkg ul{list-style:none;margin-top:24px}
+  .b-pkg li{display:flex;justify-content:space-between;font-size:15px;padding:13px 0;
+    border-bottom:1px solid #F0F1EF;color:#5F6875}
+  .b-pkg li b{color:var(--ink)}
+
+  .b-spec{background:var(--soft);padding:96px 60px;justify-content:flex-start}
+  .b-spec .no{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--muted)}
+  .b-spec h1{font-size:32px;font-weight:800;letter-spacing:-.03em;margin:16px 0 36px;color:var(--ink)}
+  .b-spec table{width:100%;border-collapse:collapse}
+  .b-spec th,.b-spec td{text-align:left;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.08);font-size:14.5px}
+  .b-spec th{color:#8B9099;font-weight:600;width:40%}
+  .b-spec td{font-weight:700;color:var(--ink)}
+
+  .b-guide{background:#fff;padding:96px 60px;justify-content:center}
+  .b-guide h1{font-size:31px;font-weight:800;letter-spacing:-.03em;color:var(--ink);margin-bottom:36px}
+  .b-guide .step{display:flex;gap:18px;margin-bottom:28px}
+  .b-guide .step b{width:40px;height:40px;border-radius:50%;background:var(--bg);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+  .b-guide .step .t{font-size:17px;font-weight:700;color:var(--ink)}
+  .b-guide .step .d{font-size:13.5px;color:#6B7280;line-height:1.65;margin-top:6px}
+
+  .b-notice{background:var(--soft);padding:96px 60px;justify-content:center}
+  .b-notice h1{font-size:26px;font-weight:800;color:var(--ink);margin-bottom:28px;letter-spacing:-.02em}
+  .b-notice p{font-size:13.5px;color:#6B7280;line-height:2;padding-left:12px;border-left:2px solid var(--line)}
+
+  .b-cta{justify-content:flex-end;text-align:center;background:#fff}
+  .b-cta .photo{position:absolute;left:0;right:0;top:0;height:56%;overflow:hidden}
+  .b-cta .copy{position:relative;z-index:3;padding:0 60px 88px}
+  .b-cta h1{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.38;color:var(--ink)}
+  .b-cta .price{margin:24px 0 6px;font-size:15px;color:var(--muted)}
+  .b-cta .price s{margin-right:10px}
+  .b-cta .price b{font-size:31px;color:var(--accent);font-weight:800;letter-spacing:-.02em}
+  .b-cta .btn{display:inline-block;margin-top:24px;background:var(--accent);color:#fff;
+    font-size:16px;font-weight:800;padding:18px 54px;border-radius:8px}
+  .b-cta .note{font-size:11.5px;color:var(--muted);margin-top:16px}
+
+  .b-foot{background:#1A1D21;justify-content:center;padding:0 60px;color:rgba(255,255,255,.55)}
+  .b-foot h1{font-size:24px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:20px}
+  .b-foot p{font-size:12px;line-height:2}
+  .b-foot .links{margin-top:26px;font-size:11.5px;letter-spacing:.04em}
+
+  .prompts{margin-top:22px;width:600px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .prompts h3{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;
+    padding:13px 16px;border-bottom:1px solid var(--line);font-weight:800}
+  .pi{padding:11px 16px;border-bottom:1px solid #F0F1EF;display:flex;gap:10px;align-items:flex-start}
+  .pi:last-child{border-bottom:none}
+  .pi .id{font-size:9.5px;font-weight:800;color:#fff;background:#3E4A5B;padding:3px 6px;border-radius:3px;flex:none;margin-top:2px}
+  .pi .txt{flex:1;font-size:11.5px;color:#5A6472;line-height:1.6}
+  .pi button{font-family:inherit;font-size:10px;font-weight:700;border:1px solid var(--line);
+    background:#fff;border-radius:4px;padding:4px 8px;cursor:pointer;color:#6B7280;flex:none}
+  .zoom{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:11px;color:var(--muted);font-weight:600}
+  @media(max-width:1060px){.layout{grid-template-columns:1fr}aside{max-height:none;border-right:none;border-bottom:1px solid var(--line)}main{max-height:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>상세페이지 빌더</h1>
+  <span class="tag">테마 교체형</span>
+  <span class="len">총 길이 <b id="lenVal">0</b> px · <span id="blkVal">0</span>블록</span>
+  <span class="len" id="savedTag" style="display:none">자동 저장됨</span>
+  <div class="sp"></div>
+  <button id="btnSaveProj">프로젝트 저장</button>
+  <button id="btnLoadProj">불러오기</button>
+  <button id="btnPromptJson">프롬프트 JSON</button>
+  <button id="btnPrompts">프롬프트 복사</button>
+  <button id="btnExport" class="primary">HTML 내보내기</button>
+  <input type="file" id="fileProj" accept=".json" style="display:none">
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="group">
+      <label>제품</label>
+      <div class="field"><span>제품명</span><input type="text" id="iProduct" value="무선 미니 가습기"></div>
+      <div class="row2">
+        <div class="field"><span>영문 카테고리</span><input type="text" id="iKicker" value="MINI HUMIDIFIER"></div>
+        <div class="field"><span>타깃</span><input type="text" id="iTarget" value="락한 사람"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><span>사용 공간</span><input type="text" id="iSpace" value="책상 위"></div>
+        <div class="field"><span>브랜드</span><input type="text" id="iBrand" value="BRAND"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><span>계절/상황</span><input type="text" id="iSeason" value="역대급 추위"></div>
+        <div class="field"><span>대표 증상</span><input type="text" id="iSymptom" value="코가 건조해서 아파요"></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <label>소구점 4개 (수치 + 효익)</label>
+      <div class="row2">
+        <div class="field"><span>P1 수치</span><input type="text" id="s1v" value="30dB 이하"></div>
+        <div class="field"><span>P1 효익</span><input type="text" id="s1b" value="저소음"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><span>P2 수치</span><input type="text" id="s2v" value="최대 8시간"></div>
+        <div class="field"><span>P2 효익</span><input type="text" id="s2b" value="무선"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><span>P3 수치</span><input type="text" id="s3v" value="300ml"></div>
+        <div class="field"><span>P3 효익</span><input type="text" id="s3b" value="하루 종일"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><span>P4 수치</span><input type="text" id="s4v" value="2단계"></div>
+        <div class="field"><span>P4 효익</span><input type="text" id="s4b" value="분무량 조절"></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <label>테마 — 팔레트</label>
+      <div class="picks" id="picks"></div>
+    </div>
+
+    <div class="group">
+      <label>테마 — 컴포넌트</label>
+      <div class="shapes" id="shapes">
+        <div class="shape on" data-badge="circle" title="동그라미"><i class="c"></i></div>
+        <div class="shape" data-badge="square" title="네모"><i class="s"></i></div>
+        <div class="shape" data-badge="ribbon" title="리본"><i class="r"></i></div>
+        <div class="shape" data-badge="tag" title="태그"><i class="t"></i></div>
+        <div class="shape" data-badge="none" title="숫자만"><i class="n">01</i></div>
+      </div>
+      <p class="hint">가이드(블록 순서·카피 공식)는 그대로 두고 <b>모양만</b> 바뀝니다. 리본은 리본 컨셉 제품, 태그는 패션·잡화에 어울립니다.</p>
+    </div>
+
+    <div class="group">
+      <label>이미지 슬롯</label>
+      <label class="upload"><div class="thumb" id="th1">A</div>
+        <div class="meta"><b>라이프스타일 연출컷</b><small>히어로 · 문제제기 · 감성컷</small></div>
+        <input type="file" accept="image/*" data-slot="1"></label>
+      <label class="upload"><div class="thumb" id="th2">C</div>
+        <div class="meta"><b>매크로 디테일컷</b><small>포인트 · 디테일</small></div>
+        <input type="file" accept="image/*" data-slot="2"></label>
+      <label class="upload"><div class="thumb" id="th3">B</div>
+        <div class="meta"><b>스튜디오 컷</b><small>해결 · 스튜디오 · 패키지</small></div>
+        <input type="file" accept="image/*" data-slot="3"></label>
+      <label class="upload"><div class="thumb" id="th4">G</div>
+        <div class="meta"><b>GIF / 움직이는 컷</b><small>중간중간 삽입</small></div>
+        <input type="file" accept="image/*" data-slot="4"></label>
+      <p class="hint">비워두면 플레이스홀더가 들어갑니다. 아래 프롬프트로 생성한 이미지를 넣으세요.</p>
+    </div>
+  </aside>
+
+  <main>
+    <div class="zoom"><span>확대</span><input type="range" id="zoom" min="40" max="100" value="62"><span id="zoomVal">62%</span></div>
+    <div class="stage" id="stage"></div>
+    <div class="prompts" id="prompts"></div>
+  </main>
+</div>
+
+<script>
+/* ================= THEME ================= */
+const PALETTES = {
+  mint:   {bg:'#EAF0ED', soft:'#F2F6F4', ink:'#3E4A5B', accent:'#C4703F', badge:'#3E4A5B'},
+  cream:  {bg:'#F4F1EC', soft:'#FAF8F4', ink:'#4A443C', accent:'#B4674A', badge:'#4A443C'},
+  sand:   {bg:'#EFE9E0', soft:'#F7F3EC', ink:'#4F4739', accent:'#A96A3C', badge:'#4F4739'},
+  blush:  {bg:'#F7EDEA', soft:'#FCF5F3', ink:'#5A4340', accent:'#C05B5B', badge:'#5A4340'},
+  sky:    {bg:'#E8EEF4', soft:'#F2F6FA', ink:'#3A4A5C', accent:'#4A7BA7', badge:'#3A4A5C'},
+  mono:   {bg:'#F1F1F0', soft:'#F9F9F8', ink:'#1F1F1F', accent:'#111111', badge:'#1F1F1F'}
+};
+const S = { palette:'mint', badge:'circle', imgs:{1:null,2:null,3:null,4:null} };
+const BLOCK_H = 1050;
+
+const val = id => document.getElementById(id).value.trim();
+const img = s => S.imgs[s] ? `<div class="img" style="background-image:url('${S.imgs[s]}')"></div>` : '';
+const ph  = t => `<div class="ph"><span>${t}</span></div>`;
+const shot = (s,t) => S.imgs[s] ? img(s) : ph(t);
+
+/* ================= MODEL ================= */
+function model(){
+  const product=val('iProduct'), kicker=val('iKicker'), target=val('iTarget'),
+        space=val('iSpace'), brand=val('iBrand'), season=val('iSeason'), symptom=val('iSymptom');
+  const sp=[1,2,3,4].map(i=>({v:val('s'+i+'v'), b:val('s'+i+'b')}));
+  const short = product.replace(/^무선\s*/,'').replace(/^미니\s*/,'');
+  return {
+    product, kicker, target, space, brand, season, symptom, short, sp,
+    hero1:`${target}을 위한 ${product}`,
+    hero2:`${sp[0].b} ${product}`,
+    pr1h:`${season},\n${space}가 건조해졌어요`,
+    pr1p:`${season}이 이어지면서 실내 습도는\n평소보다 크게 떨어집니다.\n가만히 있어도 입술이 당깁니다.`,
+    pr1q:`“오늘 습도, 몇 %인지 아세요?”`,
+    pr2h:`${symptom}`,
+    pr2p:`아침에 일어나면 목이 칼칼하고\n코 안이 따끔거립니다.\n피부는 당기고, 눈도 뻑뻑합니다.`,
+    pr2q:`건조는 하루로 끝나지 않습니다.`,
+    pr3h:`물을 끓여도,\n수건을 걸어도 부족합니다`,
+    pr3p:`가장 쉬운 방법은 가습기입니다.\n그런데 많은 분들이 세 가지 이유로\n결국 안 쓰게 됩니다.`,
+    pr3q:`소음 · 물때 · 관리`,
+    sol2:`이런 걸 쓰셔야\n건강하게 사용할 수 있습니다`,
+    points: sp.map((s,i)=>({
+      no: String(i+1).padStart(2,'0'),
+      h: s.v + ' ' + s.b,
+      en: [kicker+' · QUIET DESIGN','MAX '+s.v.replace(/^최대\s*/,'')+' WIRELESS',s.v.toUpperCase()+' CAPACITY',s.b.toUpperCase()][i] || s.b.toUpperCase(),
+      d: [
+        `${s.v} ${s.b} 설계로 ${space}에서도 부담 없이 사용할 수 있습니다. 취침 중에도 소리가 신경 쓰이지 않아 켜둔 채로 잘 수 있습니다.`,
+        `${s.v} ${s.b} 사용이 가능해 선이 없는 자리에서도 그대로 씁니다. 충전 한 번으로 하루 사용이 충분합니다.`,
+        `${s.v} 용량으로 물 보충 횟수를 줄였습니다. 한 번 채우면 ${s.b} 사용이 가능해 관리 부담이 적습니다.`,
+        `${s.v} ${s.b}이 가능해 공간과 상황에 맞춰 조절할 수 있습니다. 취침 시에는 약하게, 건조한 날에는 강하게 씁니다.`
+      ][i]
+    })),
+    emo: [`${space} 위, 조용히 놓여 있는 것만으로\n공기의 온도가 달라집니다`,
+          `보이지 않는 것을 채우는 일,\n${short}가 그 일을 합니다`,
+          `하루의 끝에서,\n숨이 편해지는 순간`],
+    techH:`물을 데우지 않고\n초음파로 흔들어 보냅니다`,
+    techP:`히터 없이 진동자로 물을 미세 입자로 바꿉니다.\n열을 쓰지 않아 화상 위험이 없고, 전력 소모도 낮습니다.\n\n분무 입자는 5μm 이하로, 공기 중에 오래 머물며\n습도를 고르게 만듭니다.`,
+    certH:`믿고 쓰실 수 있도록\n검증을 마쳤습니다`,
+    testP:`“${sp[0].v} ${sp[0].b}라서\n밤에도 부담 없이 켜둘 수 있어요.”`,
+    pkgH:`구성품`, specH:`제품 상세 스펙`, guideH:`사용 방법`,
+    ctaH:`지금, ${product}로\n바꾸세요`
+  };
+}
+
+const badge = (no,label) => `<div class="badge ${S.badge}"><small>${label}</small><b>#${no}</b></div>`;
+
+/* ================= BLOCKS ================= */
+function blocks(m){
+  const P = PALETTES[S.palette];
+  const B = [];
+  const push = h => B.push(h);
+
+  push(`<section class="block b-hero">
+    ${shot(1,'LIFESTYLE · HERO 600×1050')}
+    <div class="veil"></div>
+    <div class="copy"><div class="kicker">${m.kicker}</div>
+      <h2>${m.hero1}</h2><h1>${m.hero2}</h1></div></section>`);
+
+  push(`<section class="block b-prob">
+    <div class="top"><div class="no">01 — PROBLEM</div>
+      <h1>${m.pr1h.replace(/\n/g,'<br>')}</h1>
+      <p>${m.pr1p.replace(/\n/g,'<br>')}</p>
+      <div class="q">${m.pr1q}</div></div>
+    <div class="photo">${shot(1,'DRY ROOM · WINTER')}</div></section>`);
+
+  push(`<section class="block b-prob">
+    <div class="top"><div class="no">02 — SYMPTOM</div>
+      <h1>${m.pr2h.replace(/\n/g,'<br>')}</h1>
+      <p>${m.pr2p.replace(/\n/g,'<br>')}</p>
+      <div class="q">${m.pr2q}</div></div>
+    <div class="photo">${shot(1,'SYMPTOM · CLOSE UP')}</div></section>`);
+
+  push(`<section class="block b-prob">
+    <div class="top"><div class="no">03 — WHY NOT</div>
+      <h1>${m.pr3h.replace(/\n/g,'<br>')}</h1>
+      <p>${m.pr3p.replace(/\n/g,'<br>')}</p>
+      <div class="q">${m.pr3q}</div></div>
+    <div class="photo">${shot(3,'PRODUCT · MUTED')}</div></section>`);
+
+  push(`<section class="block b-trans"><h1>그래서,<br>어떤 가습기를<br>골라야 할까요?</h1>
+    <p>${m.target}이 실제로 오래 쓰는 기준</p></section>`);
+
+  push(`<section class="block b-sol">
+    <div class="photo">${shot(3,'STUDIO · PRODUCT')}</div>
+    <div class="copy"><h2>${m.sol2.split('\n')[0]}</h2>
+      <h1>${m.sol2.split('\n')[1]}</h1></div></section>`);
+
+  push(`<section class="block b-index">
+    <div class="no">04 — KEY POINTS</div>
+    <h1>고른 이유는<br>네 가지입니다</h1>
+    <ol>${m.points.map((p,i)=>`<li><b>0${i+1}</b><span class="t">${p.h}</span></li>`).join('')}</ol></section>`);
+
+  m.points.forEach((p,i)=>{
+    push(`<section class="block b-pm">
+      <div class="photo">${shot(i===1?2:1,'POINT '+p.no+' · '+(i===1?'MACRO':'LIFESTYLE'))}</div>
+      <div class="lower">${badge(p.no,'POINT '+(i+1))}
+        <h1>${p.h}</h1><div class="en">${p.en}</div></div></section>`);
+
+    push(`<section class="block b-pd">
+      <div class="tagline">POINT 0${i+1} — DETAIL</div>
+      <h1>${p.h}</h1>
+      <p>${p.d}</p>
+      <div class="stats">
+        <div class="stat"><b>${m.sp[i].v}</b><small>SPEC</small></div>
+        <div class="stat"><b>0${i+1}</b><small>POINT</small></div>
+        <div class="stat"><b>${m.short.slice(0,4)}</b><small>MODEL</small></div>
+      </div></section>`);
+
+    push(`<section class="block b-emo">
+      ${shot(i===2?3:1,'EMOTION '+p.no)}
+      <div class="veil"></div>
+      <div class="copy"><h1>${m.emo[i%3].replace(/\n/g,'<br>')}</h1></div></section>`);
+  });
+
+  push(`<section class="block b-emo">${shot(1,'EMOTION · WIDE')}<div class="veil"></div>
+    <div class="copy"><h1>${m.emo[0].replace(/\n/g,'<br>')}</h1></div></section>`);
+
+  push(`<section class="block b-gif">${shot(4,'GIF · MIST MOTION')}
+    <div class="lbl">GIF — 분무 동작</div></section>`);
+
+  push(`<section class="block b-tech">
+    <div class="no">05 — TECHNOLOGY</div>
+    <h1>${m.techH.replace(/\n/g,'<br>')}</h1>
+    <p>${m.techP.replace(/\n/g,'<br>')}</p>
+    <div class="diagram">DIAGRAM · 구조 단면도</div></section>`);
+
+  push(`<section class="block b-tech">
+    <div class="no">05 — TECHNOLOGY</div>
+    <h1>보이지 않는 곳까지<br>같은 기준으로</h1>
+    <p>물탱크는 분리형으로 설계해 세척이 쉽습니다.<br>진동자는 교체 없이 오래 쓰도록 마감했습니다.<br>물때가 남지 않도록 내부 코팅을 적용했습니다.</p>
+    <div class="diagram">DETAIL · 내부 구조</div></section>`);
+
+  push(`<section class="block b-pd">
+    <div class="tagline">05 — TESTED</div>
+    <h1>수치로 확인한<br>실사용 성능</h1>
+    <p>같은 조건에서 반복 측정했습니다. 표기 수치는 최대값이 아니라 평균 사용 조건 기준입니다.</p>
+    <div class="stats">
+      <div class="stat"><b>${m.sp[0].v}</b><small>소음</small></div>
+      <div class="stat"><b>${m.sp[1].v}</b><small>사용시간</small></div>
+      <div class="stat"><b>${m.sp[2].v}</b><small>용량</small></div>
+    </div></section>`);
+
+  push(`<section class="block b-emo">${shot(1,'EMOTION · NIGHT')}<div class="veil"></div>
+    <div class="copy"><h1>${m.emo[1].replace(/\n/g,'<br>')}</h1></div></section>`);
+
+  push(`<section class="block b-gif">${shot(4,'GIF · BUTTON')}
+    <div class="lbl">GIF — 버튼 조작</div></section>`);
+
+  push(`<section class="block b-pm" style="background:${P.soft}">
+    <div class="photo">${shot(2,'MACRO · SURFACE')}</div>
+    <div class="lower"><h1>손이 닿는 곳까지<br>마감했습니다</h1>
+      <div class="en">MATTE FINISH · SOFT TOUCH</div></div></section>`);
+
+  push(`<section class="block b-pm" style="background:${P.soft}">
+    <div class="photo">${shot(2,'MACRO · PORT')}</div>
+    <div class="lower"><h1>USB-C 하나로<br>충전은 간단하게</h1>
+      <div class="en">USB-C · FAST CHARGE</div></div></section>`);
+
+  push(`<section class="block b-cert">
+    <h1>${m.certH.replace(/\n/g,'<br>')}</h1>
+    <div class="frame">CERTIFICATE · 인증서 이미지</div>
+    <ul>
+      <li><b>전기용품 안전인증</b> KC 인증 취득</li>
+      <li><b>전자파 적합성</b> 적합성 평가 통과</li>
+      <li><b>유해물질 시험</b> RoHS 기준 충족</li>
+      <li><b>품질보증</b> 구입일로부터 1년</li>
+    </ul></section>`);
+
+  push(`<section class="block b-test"><div class="q">“</div>
+    <p>${m.testP.replace(/\n/g,'<br>')}</p>
+    <div class="who">${m.brand} 구매 고객 · ${m.space} 사용</div></section>`);
+
+  push(`<section class="block b-pkg">
+    <div class="photo">${shot(3,'STUDIO · PACKAGE')}</div>
+    <div class="copy"><h1>${m.pkgH}</h1>
+      <ul>
+        <li><span>본체</span><b>1개</b></li>
+        <li><span>USB-C 케이블</span><b>1개</b></li>
+        <li><span>사용 설명서</span><b>1부</b></li>
+        <li><span>필터 (예비)</span><b>1개</b></li>
+      </ul></div></section>`);
+
+  push(`<section class="block b-pkg">
+    <div class="photo">${shot(3,'STUDIO · BOX')}</div>
+    <div class="copy"><h1>박스까지<br>그대로 도착합니다</h1>
+      <ul>
+        <li><span>포장 방식</span><b>완충재 3중</b></li>
+        <li><span>배송</span><b>평일 당일 출고</b></li>
+        <li><span>교환/반품</span><b>수령 후 7일</b></li>
+      </ul></div></section>`);
+
+  push(`<section class="block b-spec">
+    <div class="no">06 — SPECIFICATION</div>
+    <h1>${m.specH}</h1>
+    <table>
+      <tr><th>제품명</th><td>${m.product}</td></tr>
+      <tr><th>모델명</th><td>${m.brand}-01</td></tr>
+      <tr><th>소음</th><td>${m.sp[0].v}</td></tr>
+      <tr><th>사용 시간</th><td>${m.sp[1].v}</td></tr>
+      <tr><th>용량</th><td>${m.sp[2].v}</td></tr>
+      <tr><th>분무 방식</th><td>${m.sp[3].v} ${m.sp[3].b}</td></tr>
+    </table></section>`);
+
+  push(`<section class="block b-spec">
+    <div class="no">06 — SPECIFICATION</div>
+    <h1>상세 제원</h1>
+    <table>
+      <tr><th>재질</th><td>ABS · PP · 실리콘</td></tr>
+      <tr><th>전원</th><td>USB-C 5V / 1A</td></tr>
+      <tr><th>소비전력</th><td>3W</td></tr>
+      <tr><th>크기</th><td>지름 70mm × 높이 140mm</td></tr>
+      <tr><th>무게</th><td>210g</td></tr>
+      <tr><th>구성</th><td>본체 · 케이블 · 설명서 · 예비 필터</td></tr>
+      <tr><th>제조국</th><td>대한민국</td></tr>
+    </table></section>`);
+
+  push(`<section class="block b-guide">
+    <h1>${m.guideH}</h1>
+    <div class="step"><b>1</b><div><div class="t">물을 채웁니다</div>
+      <div class="d">상단 캡을 열고 물탱크에 물을 채웁니다.<br>정수된 물을 권장합니다.</div></div></div>
+    <div class="step"><b>2</b><div><div class="t">뚜껑을 닫고 전원을 켭니다</div>
+      <div class="d">버튼을 한 번 누르면 ${m.sp[3].v} ${m.sp[3].b}이 시작됩니다.</div></div></div>
+    <div class="step"><b>3</b><div><div class="t">공간에 맞춰 조절합니다</div>
+      <div class="d">취침 시에는 약하게, 건조한 날에는 강하게 사용하세요.</div></div></div></section>`);
+
+  push(`<section class="block b-guide">
+    <h1>관리 방법</h1>
+    <div class="step"><b>1</b><div><div class="t">일주일에 한 번 세척</div>
+      <div class="d">물탱크를 분리해 미지근한 물로 헹궈주세요.</div></div></div>
+    <div class="step"><b>2</b><div><div class="t">필터 교체</div>
+      <div class="d">사용 환경에 따라 2~3개월에 한 번 교체를 권장합니다.</div></div></div>
+    <div class="step"><b>3</b><div><div class="t">장기 보관 시</div>
+      <div class="d">물을 완전히 비우고 완전히 건조한 뒤 보관하세요.</div></div></div></section>`);
+
+  push(`<section class="block b-notice">
+    <h1>구매 전 확인해주세요</h1>
+    <p>· 제품 사진은 실제와 다를 수 있습니다.<br>
+       · 측정값은 사용 환경에 따라 달라질 수 있습니다.<br>
+       · 교환 및 반품은 수령 후 7일 이내 가능합니다.<br>
+       · 단순 변심의 경우 왕복 배송비가 발생합니다.<br>
+       · 품질 이상 시 구입일로부터 1년 무상 보증합니다.</p></section>`);
+
+  push(`<section class="block b-cta">
+    <div class="photo">${shot(3,'STUDIO · CTA')}</div>
+    <div class="copy"><h1>${m.ctaH.replace(/\n/g,'<br>')}</h1>
+      <div class="price"><s>49,000원</s><b>29,900원</b></div>
+      <div class="btn">구매하기</div>
+      <div class="note">무료배송 · 평일 당일 출고</div></div></section>`);
+
+  push(`<section class="block b-cta">
+    <div class="photo">${shot(3,'STUDIO · FINAL')}</div>
+    <div class="copy"><h1>${m.season}이 지나기 전에<br>준비하세요</h1>
+      <div class="price"><s>49,000원</s><b>29,900원</b></div>
+      <div class="btn">지금 구매하기</div>
+      <div class="note">1년 품질보증 · 7일 이내 교환</div></div></section>`);
+
+  push(`<section class="block b-foot">
+    <h1>${m.brand}</h1>
+    <p>상호 ${m.brand} · 대표 홍길동<br>
+       사업자등록번호 000-00-00000<br>
+       통신판매업신고 2026-서울-0000<br>
+       고객센터 0000-0000 (평일 10:00–17:00)<br>
+       주소 서울특별시 00구 00로 00</p>
+    <div class="links">이용약관 · 개인정보처리방침 · 배송/교환 안내</div></section>`);
+
+  return B;
+}
+
+/* ================= PROMPTS ================= */
+function prompts(m){
+  return [
+    {id:'A', t:`[라이프스타일 연출컷] 실제 생활 공간(${m.space} 주변)에 놓인 ${m.product}, 자연광, 얕은 심도, 제품 중심, 주변 소품 2개 이하, 따뜻하고 차분한 색온도. 제품을 화면 하단 2/3에 배치하고 상단은 여백으로 비울 것.`},
+    {id:'A', t:`[문제제기 컷] 건조한 실내, ${m.season} 분위기, 창밖은 차갑고 실내는 메마른 톤. 제품 없이 공간만. 상단 48%는 밝은 여백.`},
+    {id:'C', t:`[매크로 디테일컷] ${m.product}의 기능 부위 초근접, 질감 강조, 매우 얕은 심도, 배경 완전 블러, 따뜻한 하이라이트. 상단 62%에 제품, 하단 38%는 단색 여백.`},
+    {id:'B', t:`[스튜디오 컷] 무채색 단색 배경에 놓인 ${m.product} 정면, 부드러운 접지 그림자, 여백 70% 이상, 미니멀.`},
+    {id:'G', t:`[GIF 소스] ${m.product} 분무 동작 클로즈업, 물안개가 위로 올라오는 3초 루프, 고정 카메라, 미세한 흔들림, 텍스트 없음.`},
+    {id:'B', t:`[패키지 컷] ${m.product} 본체 + USB-C 케이블 + 설명서 + 예비 필터를 정돈해 배치, 무채색 배경, 부드러운 그림자.`}
+  ];
+}
+const NEG = '네거티브: 텍스트, 워터마크, 로고 왜곡, 손가락 변형, 과채도, HDR 과다, 제품 비율 변경, 제품 복제, 어수선한 배경';
+
+/* ================= RENDER ================= */
+function applyTheme(){
+  const P = PALETTES[S.palette];
+  const r = document.documentElement.style;
+  r.setProperty('--bg',P.bg); r.setProperty('--soft',P.soft);
+  r.setProperty('--ink',P.ink); r.setProperty('--accent',P.accent);
+  r.setProperty('--badgeBg',P.badge);
+}
+
+function render(){
+  applyTheme();
+  const m = model();
+  const B = blocks(m);
+  document.getElementById('stage').innerHTML = B.join('');
+  document.getElementById('lenVal').textContent = (B.length*BLOCK_H).toLocaleString();
+  document.getElementById('blkVal').textContent = B.length;
+
+  document.getElementById('prompts').innerHTML =
+    `<h3>이미지 프롬프트 (슬롯별)</h3>` +
+    prompts(m).map(p=>`<div class="pi"><span class="id">${p.id}</span>
+      <span class="txt">${p.t}<br><span style="color:#A8AEAB">${NEG}</span></span>
+      <button data-copy="${encodeURIComponent(p.t+'\n'+NEG)}">복사</button></div>`).join('');
+  document.querySelectorAll('[data-copy]').forEach(b=>{
+    b.onclick=()=>{navigator.clipboard.writeText(decodeURIComponent(b.dataset.copy));
+      const o=b.textContent;b.textContent='완료';setTimeout(()=>b.textContent=o,900);};
+  });
+  applyZoom();
+  persist();
+}
+
+function applyZoom(){
+  const z=+document.getElementById('zoom').value/100;
+  const st=document.getElementById('stage');
+  st.style.transform=`scale(${z})`;
+  st.style.marginBottom=`${-(1-z)*st.offsetHeight}px`;
+  document.getElementById('zoomVal').textContent=Math.round(z*100)+'%';
+}
+
+/* ================= PERSIST (localStorage) ================= */
+const STORE='dpb_v2';
+const TEXT_IDS=['iProduct','iKicker','iTarget','iSpace','iBrand','iSeason','iSymptom',
+                's1v','s1b','s2v','s2b','s3v','s3b','s4v','s4b'];
+
+function snapshot(){
+  const d={};
+  TEXT_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) d[id]=el.value; });
+  return {v:2, palette:S.palette, badge:S.badge, fields:d};
+}
+function persist(){
+  try{ localStorage.setItem(STORE, JSON.stringify(snapshot())); flashSaved(); }catch(e){}
+}
+function flashSaved(){
+  const t=document.getElementById('savedTag'); if(!t) return;
+  t.style.display='';
+  clearTimeout(flashSaved._t);
+  flashSaved._t=setTimeout(()=>{ t.style.display='none'; },1400);
+}
+function applyState(st){
+  if(!st) return;
+  if(st.palette && PALETTES[st.palette]) S.palette=st.palette;
+  if(st.badge) S.badge=st.badge;
+  if(st.fields) Object.entries(st.fields).forEach(([k,v])=>{
+    const el=document.getElementById(k);
+    if(el && typeof v==='string') el.value=v;
+  });
+}
+function loadState(){
+  try{ applyState(JSON.parse(localStorage.getItem(STORE)||'null')); }catch(e){}
+}
+
+/* ================= INIT UI ================= */
+loadState();
+const picks = document.getElementById('picks');
+Object.entries(PALETTES).forEach(([k,v])=>{
+  const d=document.createElement('div');
+  d.className='pick'+(k===S.palette?' on':'');
+  d.dataset.p=k; d.title=k;
+  d.style.background=`linear-gradient(135deg,${v.bg} 0 50%,${v.accent} 50% 100%)`;
+  picks.appendChild(d);
+});
+picks.onclick=e=>{
+  const t=e.target.closest('.pick'); if(!t)return;
+  picks.querySelectorAll('.pick').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); S.palette=t.dataset.p; render();
+};
+document.getElementById('shapes').onclick=e=>{
+  const t=e.target.closest('.shape'); if(!t)return;
+  document.querySelectorAll('.shape').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); S.badge=t.dataset.badge; render();
+};
+document.querySelectorAll('aside input[type=text]').forEach(i=>i.addEventListener('input',render));
+document.querySelectorAll('.upload input').forEach(inp=>{
+  inp.onchange=e=>{
+    const f=e.target.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      S.imgs[inp.dataset.slot]=ev.target.result;
+      document.getElementById('th'+inp.dataset.slot).innerHTML=`<img src="${ev.target.result}">`;
+      render();
+    };
+    r.readAsDataURL(f);
+  };
+});
+document.getElementById('zoom').addEventListener('input',applyZoom);
+document.getElementById('btnPrompts').onclick=()=>{
+  const txt=prompts(model()).map((p,i)=>`#${i+1} [${p.id}]\n${p.t}\n${NEG}`).join('\n\n');
+  navigator.clipboard.writeText(txt);
+  const b=document.getElementById('btnPrompts'),o=b.textContent;
+  b.textContent='복사됨';setTimeout(()=>b.textContent=o,1200);
+};
+document.getElementById('btnExport').onclick=()=>{
+  const css=Array.from(document.styleSheets[0].cssRules).map(r=>r.cssText).join('\n');
+  const P=PALETTES[S.palette];
+  const html=`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${val('iProduct')} 상세페이지</title>
+<style>:root{--bg:${P.bg};--soft:${P.soft};--ink:${P.ink};--accent:${P.accent};--badgeBg:${P.badge}}
+${css}
+body{background:#fff}
+.wrap{width:600px;margin:0 auto}
+.block{box-shadow:none;margin:0 auto}
+@media(max-width:640px){.wrap,.block{width:100%;height:auto;aspect-ratio:600/1050}}</style></head>
+<body><div class="wrap">${document.getElementById('stage').innerHTML}</div></body></html>`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download='detail-page.html'; a.click();
+};
+
+/* ---- project save / load ---- */
+document.getElementById('btnSaveProj').onclick=()=>{
+  const st=snapshot();
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(st,null,2)],{type:'application/json'}));
+  a.download=`project-${(val('iProduct')||'detail').replace(/\s+/g,'-')}.json`;
+  a.click();
+};
+document.getElementById('btnLoadProj').onclick=()=>document.getElementById('fileProj').click();
+document.getElementById('fileProj').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      applyState(JSON.parse(ev.target.result));
+      document.querySelectorAll('.pick').forEach(x=>x.classList.toggle('on',x.dataset.p===S.palette));
+      document.querySelectorAll('.shape').forEach(x=>x.classList.toggle('on',x.dataset.badge===S.badge));
+      render();
+    }catch(err){ alert('프로젝트 파일을 읽을 수 없습니다.'); }
+  };
+  r.readAsText(f);
+  e.target.value='';
+};
+
+/* ---- prompt JSON (for local batch generation) ---- */
+document.getElementById('btnPromptJson').onclick=()=>{
+  const m=model();
+  const jobs=prompts(m).map((p,i)=>({
+    index:i+1, slot:p.id, prompt:p.t, negative:NEG,
+    file:`img-${String(i+1).padStart(2,'0')}-${p.id}.png`
+  }));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(
+    [JSON.stringify({product:m.product, blockCount:40, jobs},null,2)],
+    {type:'application/json'}));
+  a.download='image-prompts.json';
+  a.click();
+};
+
+render();
+</script>
+</body>
+</html>
