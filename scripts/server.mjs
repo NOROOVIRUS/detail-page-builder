@@ -56,8 +56,8 @@ const refFile = (dataUrl) => {
 
 /* 이미지 1장 생성 */
 async function generate(req, res) {
-  // 자기 자신(빌더 화면)이 보낸 요청만: DNS 리바인딩·다른 사이트 호출 차단
-  if (!ORIGINS.includes(req.headers.origin) || !ORIGINS.map(o => o.slice(7)).includes(req.headers.host))
+  // 자기 자신(빌더 화면)이 보낸 요청만: 다른 사이트 호출 차단 (Host 는 아래 공통 검사)
+  if (!ORIGINS.includes(req.headers.origin))
     return send(res, 403, { error: '허용되지 않은 요청입니다.' });
   if (!String(req.headers['content-type'] || '').startsWith('application/json'))
     return send(res, 415, { error: 'JSON 만 받습니다.' });
@@ -87,12 +87,14 @@ async function generate(req, res) {
 
 const server = http.createServer(async (req, res) => {
   try {
+    // 모든 경로 공통: Host 가 자기 주소가 아니면 거부 (DNS 리바인딩 차단)
+    if (!ORIGINS.map(o => o.slice(7)).includes(req.headers.host)) return send(res, 403, { error: '허용되지 않은 요청입니다.' });
     const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
       return res.end(readFileSync(join(ROOT, 'index.html')));
     }
-    if (req.method === 'GET' && url.pathname === '/health') return send(res, 200, { ok: true, codex: CODEX, parallel: MAX_PARALLEL, out: OUT });
+    if (req.method === 'GET' && url.pathname === '/health') return send(res, 200, { ok: true, parallel: MAX_PARALLEL });
     if (req.method === 'POST' && url.pathname === '/generate') return await generate(req, res);
     send(res, 404, { error: 'not found' });
   } catch (e) {
