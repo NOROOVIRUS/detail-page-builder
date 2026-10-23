@@ -20,10 +20,9 @@
  *   (세션별 폴더라 --jobs 로 동시에 돌려도 결과가 섞이지 않는다)
  */
 
-import { spawn } from 'node:child_process';
-import { existsSync, readdirSync, statSync, mkdirSync, copyFileSync, readFileSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join, basename, resolve } from 'node:path';
+import { existsSync, mkdirSync, copyFileSync, readFileSync } from 'node:fs';
+import { basename, resolve, join } from 'node:path';
+import { findCodex, runCodex, findOutput } from './codex.mjs';
 
 /* ---------- args ---------- */
 const argv = process.argv.slice(2);
@@ -51,63 +50,7 @@ if (REF && !existsSync(REF)) {
   process.exit(1);
 }
 
-/* ---------- locate codex ---------- */
-function findCodex() {
-  if (process.env.CODEX_BIN && existsSync(process.env.CODEX_BIN)) return process.env.CODEX_BIN;
-
-  const home = homedir();
-  const roots = [
-    join(home, 'AppData', 'Local', 'OpenAI', 'Codex', 'bin'),
-    join(home, '.local', 'bin'),
-    '/usr/local/bin', '/opt/homebrew/bin'
-  ];
-  for (const root of roots) {
-    if (!existsSync(root)) continue;
-    // Windows: bin/<hash>/codex.exe  ·  Unix: bin/codex
-    if (statSync(root).isDirectory()) {
-      const direct = join(root, 'codex');
-      if (existsSync(direct)) return direct;
-      for (const sub of readdirSync(root)) {
-        const p = join(root, sub, 'codex.exe');
-        if (existsSync(p)) return p;
-      }
-    }
-  }
-  return 'codex'; // PATH fallback
-}
-
 const CODEX = findCodex();
-const GEN_DIR = join(homedir(), '.codex', 'generated_images');
-
-/* ---------- helpers ---------- */
-// codex exec 출력의 "session id: <uuid>" → 그 세션 폴더의 최신 PNG
-const findOutput = (out) => {
-  const m = /session id:\s*([0-9a-f-]{36})/i.exec(out);
-  if (!m) return null;
-  const d = join(GEN_DIR, m[1]);
-  if (!existsSync(d)) return null;
-  const pngs = readdirSync(d).filter(f => f.toLowerCase().endsWith('.png'))
-    .map(f => ({ f: join(d, f), t: statSync(join(d, f)).mtimeMs })).sort((a, b) => b.t - a.t);
-  return pngs.length ? pngs[0].f : null;
-};
-
-const run = (prompt) => new Promise((done) => {
-  const args = [
-    'exec',
-    '-C', outDir,
-    '--skip-git-repo-check',
-    '-s', 'workspace-write'
-  ];
-  if (REF) args.push(`--image=${REF}`);
-  args.push(prompt);
-  const p = spawn(CODEX, args, { stdio: ['ignore', 'pipe', 'pipe'] });
-  let out = '';
-  p.stdout.on('data', d => { out += d.toString(); });
-  p.stderr.on('data', d => { out += d.toString(); });
-  const timer = setTimeout(() => { try { p.kill(); } catch {} }, 5 * 60 * 1000);
-  p.on('close', code => { clearTimeout(timer); done({ code, out }); });
-  p.on('error', err => { clearTimeout(timer); done({ code: -1, out: String(err) }); });
-});
 
 /* ---------- main ---------- */
 const spec = JSON.parse(readFileSync(jsonPath, 'utf8'));
@@ -128,18 +71,13 @@ console.log(`출력    : ${outDir}`);
 if (REF) console.log(`참조 이미지: ${REF}`);
 console.log(`작업 수 : ${jobs.length}건 · 동시 ${JOBS}개 (1건당 약 50~90초)\n`);
 
-const REF_NOTE = REF
-  ? '[참조 이미지] 첨부한 사진과 같은 제품을 그대로 유지하세요. 제품의 형태·색상·비율·로고 위치를 바꾸지 말고, 배경과 조명·구도만 아래 지시에 맞게 바꿔서 새 이미지를 만드세요. 제품이 사진과 다르게 변형되면 실패입니다.\n\n'
-  : '';
-
 let ok = 0, fail = 0, next = 0;
 const t0 = Date.now();
 
 const one = async (i, job) => {
   const label = `[${i + 1}/${jobs.length}] #${job.index} slot ${job.slot}`;
   console.log(`${label} 생성 시작`);
-  const prompt = `${REF_NOTE}${job.prompt}\n\n${job.negative}`;
-  const { code, out } = await run(prompt);
+  const { code, out } = await runCodex(CODEX, `${job.prompt}\n\n${job.negative}`, { cwd: outDir, ref: REF });
   const src = findOutput(out);
   if (!src) {
     const tail = out.trim().split('\n').slice(-3).join(' / ').slice(0, 300);

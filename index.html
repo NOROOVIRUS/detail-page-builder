@@ -140,6 +140,12 @@
   .upload .meta small{font-size:10px;color:var(--muted)}
   .upload input{display:none}
   .hint{font-size:10.5px;color:var(--muted);line-height:1.6;margin-top:5px}
+  .genbtn{width:100%;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;padding:11px;border-radius:8px;
+    border:1px solid #3E4A5B;background:#3E4A5B;color:#fff;transition:.15s}
+  .genbtn:hover{background:#2C3644}
+  .genbtn.stop{background:#fff;color:#C4703F;border-color:#C4703F}
+  .genbtn:disabled{background:#E3E6E4;border-color:#E3E6E4;color:#9AA0A6;cursor:not-allowed}
+  #refBox img{width:56px;height:56px;object-fit:cover;border-radius:6px;display:block;margin:0 auto 4px}
 
   /* ===== STAGE ===== */
   .stage{width:600px;transform-origin:top center}
@@ -421,6 +427,12 @@
       <p class="hint">가이드(블록 순서·카피 공식)는 그대로 두고 <b>모양만</b> 바뀝니다. 리본은 리본 컨셉 제품, 태그는 패션·잡화에 어울립니다.</p>
     </div>
 
+    <div class="group">
+      <label>이미지 자동 생성 <span id="genState" style="color:#C4703F"></span></label>
+      <div class="dropall" id="refBox">참조 사진(선택) — 폰카로 찍은 제품 사진을 놓으면<br>제품 모양은 그대로, 배경만 바꿔서 만듭니다</div>
+      <button id="btnGen" class="genbtn">빈 칸 자동 생성</button>
+      <p class="hint" id="genHint">Codex(ChatGPT 구독)로 3장씩 동시에 만들어 칸에 바로 채웁니다. 추가 요금 없음.</p>
+    </div>
     <div class="group">
       <label>이미지 슬롯 <span id="slotCount" style="color:#C4703F"></span></label>
       <div class="dropall" id="dropAll">여러 장을 여기에 한 번에 떨어뜨리면<br>img-07-…처럼 번호 붙은 파일은 그 번호 칸에,<br>나머지는 빈 칸부터 순서대로 채워집니다</div>
@@ -959,8 +971,17 @@ function renderSlotList(){
   }).join('');
 }
 
-function readAsDataURL(f){
-  return new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(f); });
+/* 모든 사진 입구 공통: 가로 1200px 이하 JPEG 로 줄임 (원본 PNG 2MB → 약 200KB, 자동저장·내보내기 용량 보호) */
+const IMG_MAX_W = 1200;
+async function readAsDataURL(f){
+  const bmp = await createImageBitmap(f);
+  const s = Math.min(1, IMG_MAX_W / bmp.width);
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(bmp, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.85);
 }
 
 /* byName: gen-images.mjs 가 만든 img-07-1.png → 7번 칸. 번호 없는 파일은 startKey부터 순서대로 */
@@ -1030,11 +1051,20 @@ function snapshot(){
   TEXT_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) d[id]=el.value; });
   return {v:5, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO, custom:S.custom};
 }
+/* 사진까지 저장 시도 → 용량 초과면 사진만 빼고 저장 (글자·위치 편집은 절대 잃지 않게) */
 function persist(){
-  try{ localStorage.setItem(STORE, JSON.stringify(snapshot())); flashSaved(); }catch(e){}
+  const st = snapshot();
+  try{ localStorage.setItem(STORE, JSON.stringify(st)); flashSaved(); return; }catch(e){}
+  try{
+    const lite = {};
+    Object.entries(IMGO).forEach(([k,o]) => { const {src, ...rest} = o; lite[k] = rest; });
+    localStorage.setItem(STORE, JSON.stringify(Object.assign(st, {images: lite})));
+    flashSaved('사진 제외 저장됨 · 사진은 프로젝트 저장으로');
+  }catch(e){}
 }
-function flashSaved(){
+function flashSaved(msg){
   const t=document.getElementById('savedTag'); if(!t) return;
+  t.textContent = msg || '자동 저장됨';
   t.style.display='';
   clearTimeout(flashSaved._t);
   flashSaved._t=setTimeout(()=>{ t.style.display='none'; },1400);
@@ -1203,40 +1233,44 @@ function pickImageFor(key){
   inp.value = '';
   inp.click();
 }
+/* IMGO[key] 를 화면의 해당 칸에 그림 (빈칸 .ph → .img 교체 포함). 전체 재렌더 없이 → 편집 중인 글자 포커스 유지 */
+function paintImg(key){
+  let el = document.querySelector(`[data-img="${key}"]`);
+  const o = IMGO[key];
+  if(!el || !o || !o.src) return el;
+  if(el.classList.contains('ph')){
+    const ni = document.createElement('div');
+    ni.className = 'img';
+    ni.dataset.img = key;
+    ni.dataset.kind = el.dataset.kind || '';
+    ni.dataset.label = el.dataset.label || '';
+    el.replaceWith(ni);
+    el = ni;
+  }
+  el.style.backgroundImage = `url('${o.src}')`;
+  applyImgStyle(el, o);
+  const photo = el.parentElement;
+  if(photo && photo.classList.contains('photo')){
+    if(o.full){ photo.style.top = '0'; photo.style.height = '100%'; }
+    else { photo.style.top = ''; photo.style.height = ''; }
+  }
+  const blk = el.closest('.block');
+  if(blk) blk.classList.toggle('fullbg', !!o.full);
+  return el;
+}
+
 document.getElementById('fileImg').onchange = e=>{
   const f = e.target.files[0];
   if(!f || !pendingImgKey) return;
-  const r = new FileReader();
-  r.onload = ev=>{
+  readAsDataURL(f).then(src=>{
     const key = pendingImgKey;
-    IMGO[key] = Object.assign({fit:'cover', scale:1, x:0, y:0}, IMGO[key], {src:ev.target.result});
+    IMGO[key] = Object.assign({fit:'cover', scale:1, x:0, y:0}, IMGO[key], {src});
     pendingImgKey = null;
-    let el = document.querySelector(`[data-img="${key}"]`);
-    if(el){
-      if(el.classList.contains('ph')){
-        const ni = document.createElement('div');
-        ni.className = 'img';
-        ni.dataset.img = key;
-        ni.dataset.kind = el.dataset.kind || '';
-        ni.dataset.label = el.dataset.label || '';
-        el.replaceWith(ni);
-        el = ni;
-      }
-      el.style.backgroundImage = `url('${ev.target.result}')`;
-      applyImgStyle(el, IMGO[key]);
-      const photo = el.parentElement;
-      if(photo && photo.classList.contains('photo')){
-        if(IMGO[key].full){ photo.style.top = '0'; photo.style.height = '100%'; }
-        else { photo.style.top = ''; photo.style.height = ''; }
-      }
-      const blk = el.closest('.block');
-      if(blk) blk.classList.toggle('fullbg', !!IMGO[key].full);
-      selectEl(el, true);
-    }
+    const el = paintImg(key);
+    if(el) selectEl(el, true);
     renderSlotList();
     persist(); drawToolbar();
-  };
-  r.readAsDataURL(f);
+  });
 };
 
 /* ---- 미리보기 위로 직접 드래그앤드랍 ---- */
@@ -1542,6 +1576,82 @@ document.getElementById('btnPromptJson').onclick=()=>{
     {type:'application/json'}));
   a.download='image-prompts.json';
   a.click();
+};
+
+/* ================= 이미지 자동 생성 (로컬 실행기 server.mjs → Codex CLI) ================= */
+const LOCAL_RUNNER = location.port === '7788' && /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+const GEN_PARALLEL = 3;
+let REF_SRC = null, GEN = null;
+const genBtn = document.getElementById('btnGen');
+const genState = document.getElementById('genState');
+const genHint = document.getElementById('genHint');
+const refBox = document.getElementById('refBox');
+const REF_EMPTY = refBox.innerHTML;
+
+function drawGen(){
+  if(!GEN){ genBtn.textContent = '빈 칸 자동 생성'; genBtn.classList.remove('stop'); return; }
+  genState.textContent = `${GEN.done + GEN.fail}/${GEN.total}`;
+  genBtn.textContent = GEN.stop ? '멈추는 중… (진행 중인 것만 마저 받음)' : `멈추기 · 생성 중 ${GEN.done + GEN.fail}/${GEN.total}`;
+  genBtn.classList.add('stop');
+}
+
+if(!LOCAL_RUNNER){
+  genBtn.disabled = true;
+  genHint.innerHTML = '자동 생성은 <b>바탕화면 "상세페이지 빌더" 실행기</b>로 열었을 때만 됩니다. (이 주소에서는 사진 직접 넣기만 가능)';
+}
+
+/* 참조 사진: 클릭 선택 · 드래그앤드랍 · ✕ 로 해제 (메모리에만, 저장 안 함) */
+async function setRef(f){
+  if(!f || !f.type.startsWith('image/')) return;
+  REF_SRC = await readAsDataURL(f);
+  refBox.innerHTML = `<img src="${REF_SRC}">참조 사진 사용 중 · <b data-refclear style="cursor:pointer">✕ 빼기</b>`;
+}
+refBox.addEventListener('click', e=>{
+  if(e.target.closest('[data-refclear]')){ REF_SRC = null; refBox.innerHTML = REF_EMPTY; return; }
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = () => setRef(inp.files[0]); inp.click();
+});
+['dragenter','dragover'].forEach(t=>refBox.addEventListener(t, e=>{ e.preventDefault(); refBox.classList.add('hot'); }));
+refBox.addEventListener('dragleave', ()=>refBox.classList.remove('hot'));
+refBox.addEventListener('drop', e=>{ e.preventDefault(); refBox.classList.remove('hot'); setRef(e.dataTransfer.files[0]); });
+
+/* 빈 칸만 골라 GEN_PARALLEL 장씩 생성 → 도착하는 대로 칸에 채움 */
+genBtn.onclick = async ()=>{
+  if(GEN){ GEN.stop = true; drawGen(); return; }
+  const P = prompts(model());
+  const todo = SLOTS.map((s,i)=>({ key:s.key, p:P[i] })).filter((t,i)=>!slotSrc(SLOTS[i]));
+  if(!todo.length){ genHint.textContent = '빈 칸이 없습니다. 다시 만들 칸은 ✕ 로 비운 뒤 누르세요.'; return; }
+  GEN = { stop:false, done:0, fail:0, total:todo.length, t0:Date.now() };
+  genHint.textContent = `${todo.length}칸 생성 시작 — 장당 약 50~90초, ${GEN_PARALLEL}장씩 동시에. 그동안 편집해도 됩니다.`;
+  drawGen();
+  let next = 0, down = false;
+  const worker = async ()=>{
+    while(!GEN.stop && !down && next < todo.length){
+      const t = todo[next++];
+      document.querySelector(`[data-img="${t.key}"]`)?.classList.add('hot');
+      try{
+        const r = await fetch('/generate', { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ prompt: t.p.t + '\n\n' + NEG, file: t.p.file, ref: REF_SRC || undefined }) });
+        const j = await r.json();
+        if(!r.ok || !j.dataUrl) throw new Error(j.error || '생성 실패');
+        const src = await readAsDataURL(await (await fetch(j.dataUrl)).blob());
+        IMGO[t.key] = Object.assign({fit:'cover', scale:1, x:0, y:0}, IMGO[t.key], {src});
+        paintImg(t.key);
+        GEN.done++;
+      }catch(err){
+        GEN.fail++;
+        if(err instanceof TypeError) down = true; // 네트워크 오류 = 실행기 꺼짐
+        console.warn('[자동 생성]', t.p.file, err.message);
+      }
+      document.querySelector(`[data-img="${t.key}"]`)?.classList.remove('hot');
+      renderSlotList(); persist(); drawGen();
+    }
+  };
+  await Promise.all(Array.from({length: Math.min(GEN_PARALLEL, todo.length)}, worker));
+  const sec = Math.round((Date.now() - GEN.t0)/1000);
+  genHint.textContent = down ? `실행기가 꺼져서 멈췄습니다 (성공 ${GEN.done}장). 실행기를 다시 켜고 누르면 남은 칸부터 이어서 만듭니다.`
+    : `완료: 성공 ${GEN.done}장 · 실패 ${GEN.fail}장 · ${Math.floor(sec/60)}분 ${sec%60}초${GEN.fail ? ' — 다시 누르면 실패한 칸만 다시 만듭니다' : ''}`;
+  GEN = null; genState.textContent = ''; drawGen();
 };
 
 render();
