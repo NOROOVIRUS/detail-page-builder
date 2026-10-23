@@ -1125,7 +1125,7 @@ function applyState(st){
       IMGO[k] = o;
     });
   }
-  if(Array.isArray(st.gallery)) GALLERY = st.gallery.filter(g => g && typeof g.id==='string' && /^i\d+$/.test(g.key)
+  if(Array.isArray(st.gallery)) GALLERY = st.gallery.filter(g => g && typeof g.id==='string' && /^[a-z0-9]{1,20}$/.test(g.id) && /^i\d+$/.test(g.key)
       && /^data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=]+$/i.test(g.src)).map(g => ({id:g.id.slice(0,20), key:g.key, label:String(g.label||'').slice(0,60), src:g.src}));
   if(st.custom && typeof st.custom==='object') S.custom = Object.assign(S.custom, st.custom);
   if(st.fields) Object.entries(st.fields).forEach(([k,v])=>{
@@ -1697,9 +1697,9 @@ function slotNo(key){ const i = SLOTS.findIndex(s => s.key === key); return i < 
 function renderGallery(){
   galleryEl.innerHTML = GALLERY.map(g => {
     const used = SLOTS.map((s,i) => IMGO[s.key] && IMGO[s.key].src === g.src ? i+1 : 0).filter(Boolean);
-    return `<div class="gal${PICK === g.id ? ' pick' : ''}" draggable="true" data-gal="${g.id}" title="${esc(g.label)} — 칸으로 끌어다 놓기 · 칸 선택 후 클릭 · 더블클릭 = 원래 칸">
+    return `<div class="gal${PICK === g.id ? ' pick' : ''}" draggable="true" data-gal="${esc(g.id)}" title="${esc(g.label)} — 칸으로 끌어다 놓기 · 칸 선택 후 클릭 · 더블클릭 = 원래 칸">
       <img src="${g.src}"><span class="cap">#${slotNo(g.key)} ${esc(g.label)}</span>
-      ${used.length ? `<span class="used">${used.join(',')}번 사용</span>` : ''}<span class="del" data-galdel="${g.id}">✕</span></div>`;
+      ${used.length ? `<span class="used">${used.join(',')}번 사용</span>` : ''}<span class="del" data-galdel="${esc(g.id)}">✕</span></div>`;
   }).join('');
 }
 function useGallery(id, key){
