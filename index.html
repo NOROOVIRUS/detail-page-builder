@@ -120,16 +120,17 @@
     display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.07)}
   .block .img{position:absolute;inset:0;background-size:cover;background-position:center}
   .ph{position:absolute;inset:0;background:
-      radial-gradient(circle at 50% 42%, rgba(255,255,255,.92), rgba(255,255,255,0) 58%),
-      linear-gradient(160deg,var(--soft),var(--bg));
+      radial-gradient(circle at 50% 42%, rgba(255,255,255,.72), rgba(255,255,255,0) 60%),
+      linear-gradient(160deg,var(--bg),var(--soft));
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.035);
     display:flex;align-items:center;justify-content:center}
   .ph span{font-size:11px;letter-spacing:.18em;color:var(--muted);font-weight:700;opacity:.75}
   .ph[data-v="1"]{background:
-      radial-gradient(circle at 50% 42%, rgba(255,255,255,.92), rgba(255,255,255,0) 58%),
-      linear-gradient(200deg,var(--bg),var(--soft))}
+      radial-gradient(circle at 50% 42%, rgba(255,255,255,.72), rgba(255,255,255,0) 60%),
+      linear-gradient(200deg,var(--soft),var(--bg))}
   .ph[data-v="2"]{background:
-      radial-gradient(circle at 34% 28%, rgba(255,255,255,.9), rgba(255,255,255,0) 62%),
-      linear-gradient(120deg,var(--soft),var(--bg))}
+      radial-gradient(circle at 34% 28%, rgba(255,255,255,.68), rgba(255,255,255,0) 64%),
+      linear-gradient(120deg,var(--bg),var(--soft))}
   .b-gif .ph,.b-tech .ph{background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.02))}
   .b-gif .ph span{color:rgba(255,255,255,.35)}
 
@@ -185,20 +186,26 @@
   .b-pm h1{font-size:31px;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1.36;margin-top:26px}
   .b-pm .en{font-size:13.5px;color:var(--muted);margin-top:auto;letter-spacing:.02em}
 
-  .b-pd{background:var(--soft);padding:96px 60px;justify-content:center}
+  .b-pd{background:var(--soft);padding:96px 60px;justify-content:center;position:relative;overflow:hidden}
+  .b-pd .ghost{position:absolute;right:24px;bottom:24px;font-size:250px;font-weight:800;
+    color:var(--accent);opacity:.055;line-height:.9;pointer-events:none;letter-spacing:-.06em}
   .b-pd .tagline{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--accent)}
-  .b-pd h1{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.4;color:var(--ink);margin:16px 0 26px}
-  .b-pd p{font-size:16px;color:#5F6875;line-height:1.85}
-  .b-pd .stats{display:flex;gap:14px;margin-top:36px}
-  .b-pd .stat{flex:1;background:var(--paper);border-radius:10px;padding:22px 16px;text-align:center}
-  .b-pd .stat b{display:block;font-size:24px;font-weight:800;color:var(--accent);letter-spacing:-.02em}
-  .b-pd .stat small{display:block;font-size:10.5px;color:var(--muted);margin-top:6px;font-weight:600}
+  .b-pd h1{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.42;color:var(--ink);margin:16px 0 24px}
+  .b-pd p{font-size:16px;color:#5F6875;line-height:1.85;position:relative}
+  .b-pd .stats{display:flex;gap:12px;margin-top:34px;position:relative}
+  .b-pd .stat{flex:1;background:var(--paper);border-radius:10px;padding:22px 14px;text-align:center;
+    display:flex;flex-direction:column;justify-content:center;min-height:158px}
+  .b-pd .stat b{display:block;font-size:20px;font-weight:800;color:var(--accent);
+    letter-spacing:-.02em;line-height:1.35;word-break:keep-all}
+  .b-pd .stat small{display:block;font-size:10px;color:var(--muted);margin-top:auto;
+    padding-top:14px;font-weight:700;letter-spacing:.08em}
 
   .b-emo{justify-content:flex-end}
-  .b-emo .veil{position:absolute;left:0;right:0;bottom:0;height:44%;z-index:2;
-    background:linear-gradient(to top,rgba(16,20,26,.55),rgba(16,20,26,0))}
-  .b-emo .copy{position:relative;z-index:3;padding:0 60px 96px;color:#fff;text-align:center}
-  .b-emo h1{font-size:29px;font-weight:700;letter-spacing:-.02em;line-height:1.5}
+  .b-emo .veil{position:absolute;left:0;right:0;bottom:0;height:52%;z-index:2;
+    background:linear-gradient(to top,rgba(12,16,22,.78),rgba(12,16,22,.28) 55%,rgba(12,16,22,0))}
+  .b-emo .copy{position:relative;z-index:3;padding:0 60px 92px;color:#fff;text-align:center}
+  .b-emo h1{font-size:29px;font-weight:700;letter-spacing:-.02em;line-height:1.5;
+    text-shadow:0 1px 12px rgba(0,0,0,.35)}
 
   .b-gif{background:var(--dark)}
   .b-gif .photo{position:absolute;left:0;right:0;top:12%;height:76%;overflow:hidden}
@@ -464,6 +471,15 @@ let SEL = null;   /* 현재 선택 요소 */
 const BLOCK_H = 1050;
 
 const val = id => document.getElementById(id).value.trim();
+
+/* 한국어 조사 선택 (받침 유무) */
+function josa(word, withBatchim, withoutBatchim){
+  const w = String(word || '').trim();
+  if(!w) return withoutBatchim;
+  const c = w.charCodeAt(w.length - 1);
+  if(c < 0xAC00 || c > 0xD7A3) return withoutBatchim;
+  return ((c - 0xAC00) % 28 === 0) ? withoutBatchim : withBatchim;
+}
 const img = s => S.imgs[s] ? `<div class="img" data-slot="${s}" style="background-image:url('${S.imgs[s]}')"></div>` : '';
 const ph  = (t,s) => `<div class="ph" data-slot="${s}"><span>${t}</span></div>`;
 const shot = (s,t) => S.imgs[s] ? img(s) : ph(t,s);
@@ -476,10 +492,10 @@ function model(){
   const short = product.replace(/^무선\s*/,'').replace(/^미니\s*/,'');
   return {
     product, kicker, target, space, brand, season, symptom, short, sp,
-    hero1:`${target}을 위한 ${product}`,
+    hero1:`${target}${josa(target,'을','를')} 위한 ${product}`,
     hero2:`${sp[0].b} ${product}`,
-    pr1h:`${season},\n${space}가 건조해졌어요`,
-    pr1p:`${season}이 이어지면서 실내 습도는\n평소보다 크게 떨어집니다.\n가만히 있어도 입술이 당깁니다.`,
+    pr1h:`${season},\n${space}${josa(space,'이','가')} 건조해졌어요`,
+    pr1p:`${season}${josa(season,'이','가')} 이어지면서 실내 습도는\n평소보다 크게 떨어집니다.\n가만히 있어도 입술이 당깁니다.`,
     pr1q:`“오늘 습도, 몇 %인지 아세요?”`,
     pr2h:`${symptom}`,
     pr2p:`아침에 일어나면 목이 칼칼하고\n코 안이 따끔거립니다.\n피부는 당기고, 눈도 뻑뻑합니다.`,
@@ -500,14 +516,14 @@ function model(){
       ][i]
     })),
     emo: [`${space} 위, 조용히 놓여 있는 것만으로\n공기의 온도가 달라집니다`,
-          `보이지 않는 것을 채우는 일,\n${short}가 그 일을 합니다`,
+          `보이지 않는 것을 채우는 일,\n${short}${josa(short,'이','가')} 그 일을 합니다`,
           `하루의 끝에서,\n숨이 편해지는 순간`],
     techH:`물을 데우지 않고\n초음파로 흔들어 보냅니다`,
     techP:`히터 없이 진동자로 물을 미세 입자로 바꿉니다.\n열을 쓰지 않아 화상 위험이 없고, 전력 소모도 낮습니다.\n\n분무 입자는 5μm 이하로, 공기 중에 오래 머물며\n습도를 고르게 만듭니다.`,
     certH:`믿고 쓰실 수 있도록\n검증을 마쳤습니다`,
     testP:`“${sp[0].v} ${sp[0].b}라서\n밤에도 부담 없이 켜둘 수 있어요.”`,
     pkgH:`구성품`, specH:`제품 상세 스펙`, guideH:`사용 방법`,
-    ctaH:`지금, ${product}로\n바꾸세요`
+    ctaH:`지금, ${product}${josa(product,'으로','로')}\n바꾸세요`
   };
 }
 
@@ -566,13 +582,14 @@ function blocks(m){
         <h1>${p.h}</h1><div class="en">${p.en}</div></div></section>`);
 
     push(`<section class="block b-pd">
+      <div class="ghost">0${i+1}</div>
       <div class="tagline">POINT 0${i+1} — DETAIL</div>
       <h1>${p.h}</h1>
       <p>${p.d}</p>
       <div class="stats">
         <div class="stat"><b>${m.sp[i].v}</b><small>SPEC</small></div>
+        <div class="stat"><b>${m.sp[i].b}</b><small>BENEFIT</small></div>
         <div class="stat"><b>0${i+1}</b><small>POINT</small></div>
-        <div class="stat"><b>${m.short.slice(0,4)}</b><small>MODEL</small></div>
       </div></section>`);
 
     push(`<section class="block b-emo">
