@@ -77,7 +77,13 @@ node scripts/gen-images.mjs image-prompts.json
 
 # 슬롯 골라서 생성
 node scripts/gen-images.mjs image-prompts.json --only A,B
+
+# ★ 폰카로 찍은 내 제품 사진을 참조해서 생성 (제품 형태 유지, 배경만 교체)
+node scripts/gen-images.mjs image-prompts.json --ref 내제품사진.jpg
 ```
+
+`--ref` 를 쓰면 첨부한 사진의 **제품 형태·색상·비율을 유지**한 채로
+배경·조명·구도만 바꿔서 6종 이미지를 만들어냅니다. 실사 제품 사진이 있을 때 가장 좋은 결과가 나옵니다.
 
 생성된 PNG는 `images/` 폴더에 저장됩니다. 빌더의 해당 슬롯에 업로드하세요.
 

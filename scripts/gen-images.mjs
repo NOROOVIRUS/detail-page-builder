@@ -4,6 +4,7 @@
  *
  * 사용법:
  *   node scripts/gen-images.mjs image-prompts.json
+ *   node scripts/gen-images.mjs image-prompts.json --ref 내제품사진.jpg   (폰카 사진 참조)
  *   node scripts/gen-images.mjs image-prompts.json --only A,B     (슬롯 필터)
  *   node scripts/gen-images.mjs image-prompts.json --out ./images
  *
@@ -32,6 +33,12 @@ const onlyArg = argv[argv.indexOf('--only') + 1];
 const only = argv.includes('--only') && onlyArg ? onlyArg.split(',').map(s => s.trim().toUpperCase()) : null;
 const outArg = argv[argv.indexOf('--out') + 1];
 const outDir = resolve(argv.includes('--out') && outArg ? outArg : 'images');
+const refArg = argv[argv.indexOf('--ref') + 1];
+const REF = argv.includes('--ref') && refArg ? resolve(refArg) : null;
+if (REF && !existsSync(REF)) {
+  console.error(`--ref 파일을 찾을 수 없습니다: ${REF}`);
+  process.exit(1);
+}
 
 /* ---------- locate codex ---------- */
 function findCodex() {
@@ -80,9 +87,10 @@ const run = (prompt) => new Promise((done) => {
     'exec',
     '-C', outDir,
     '--skip-git-repo-check',
-    '-s', 'workspace-write',
-    prompt
+    '-s', 'workspace-write'
   ];
+  if (REF) args.push(`--image=${REF}`);
+  args.push(prompt);
   const p = spawn(CODEX, args, { stdio: ['ignore', 'pipe', 'pipe'] });
   let out = '';
   p.stdout.on('data', d => { out += d.toString(); });
@@ -104,7 +112,12 @@ if (!jobs.length) {
 mkdirSync(outDir, { recursive: true });
 console.log(`Codex   : ${CODEX}`);
 console.log(`출력    : ${outDir}`);
+if (REF) console.log(`참조 이미지: ${REF}`);
 console.log(`작업 수 : ${jobs.length}건 (1건당 약 60~90초)\n`);
+
+const REF_NOTE = REF
+  ? '[참조 이미지] 첨부한 사진과 같은 제품을 그대로 유지하세요. 제품의 형태·색상·비율·로고 위치를 바꾸지 말고, 배경과 조명·구도만 아래 지시에 맞게 바꿔서 새 이미지를 만드세요. 제품이 사진과 다르게 변형되면 실패입니다.\n\n'
+  : '';
 
 let ok = 0, fail = 0;
 
@@ -113,7 +126,7 @@ for (const [i, job] of jobs.entries()) {
   console.log(`${label} 생성 중...`);
 
   const before = snapshot();
-  const prompt = `${job.prompt}\n\n${job.negative}`;
+  const prompt = `${REF_NOTE}${job.prompt}\n\n${job.negative}`;
   const { code } = await run(prompt);
   const after = snapshot();
 
