@@ -31,13 +31,14 @@ export function findCodex() {
 
 export const GEN_DIR = join(homedir(), '.codex', 'generated_images');
 
-/* 첨부 순서: 제품 사진 → 모델 사진. 둘 중 있는 것만 */
-const refNote = (product, model) => {
-  if (!product && !model) return '';
-  const n = product && model ? ['첨부 1번', '첨부 2번'] : ['첨부한 사진', '첨부한 사진'];
+/* 첨부 순서: 제품 사진 1~4장 → 모델 사진. 있는 것만 */
+const refNote = (nRef, model) => {
+  if (!nRef && !model) return '';
   let t = '[참조 이미지] ';
-  if (product) t += `${n[0]}은 제품이다. 제품의 형태·색상·비율·로고 위치를 그대로 유지하고 배경·조명·구도만 아래 묘사에 맞게 바꿔라. 제품이 변형되면 실패다. `;
-  if (model) t += `${n[1]}은 모델(인물 캐릭터 시트)이다. 그 인물의 얼굴·헤어·체형·분위기를 그대로 유지한 같은 사람을 등장시켜 제품을 쓰거나 들고 있는 장면으로 만들어라. 시트의 여러 컷·글자·레이아웃은 따라 그리지 말고 인물 한 명만 자연스럽게. `;
+  if (nRef === 1) t += '첨부 1번은 제품 실물 사진이다. ';
+  if (nRef > 1) t += `첨부 1~${nRef}번은 같은 제품을 여러 각도에서 찍은 실물 사진이다. 사진들을 종합해 제품의 입체 형태를 파악하라. `;
+  if (nRef) t += '제품의 형태·비율·색상·재질과 버튼·로고·손잡이 등 부품 위치를 그대로 유지하고, 아래 묘사의 각도·배경·조명으로 새로 촬영한 것처럼 만들어라. 폰카 사진 속 배경·손·책상·소품은 무시. 제품이 변형되거나 부품 위치가 바뀌면 실패다. ';
+  if (model) t += `첨부 ${nRef + 1}번은 모델(인물 캐릭터 시트)이다. 그 인물의 얼굴·헤어·체형·분위기를 그대로 유지한 같은 사람을 등장시켜 제품을 쓰거나 들고 있는 장면으로 만들어라. 시트의 여러 컷·글자·레이아웃은 따라 그리지 말고 인물 한 명만 자연스럽게. `;
   return t + '\n\n';
 };
 
@@ -46,13 +47,14 @@ const GUARD = '너의 유일한 작업은 이미지 생성 도구로 사진 1장
 const clean = s => String(s).replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, ' ').replace(/<\/?묘사>/g, '');
 
 /* codex exec 1회. read-only 샌드박스(이미지는 codex 가 ~/.codex 에 직접 저장, 실측 확인).
-   ref = 제품 사진 경로, model = 모델 사진 경로 (선택).
+   refs = 제품 사진 경로 배열(최대 4, 예전 호출용 ref 1장도 받음), model = 모델 사진 경로 (선택).
    stdin 은 반드시 닫는다(안 닫으면 "Reading additional input from stdin" 무한 대기) */
-export function runCodex(codex, prompt, { cwd, ref, model } = {}) {
+export function runCodex(codex, prompt, { cwd, ref, refs, model } = {}) {
   return new Promise((done) => {
+    const prods = (refs || (ref ? [ref] : [])).filter(Boolean).slice(0, 4);
     const args = ['exec', '-C', cwd, '--skip-git-repo-check', '-s', 'read-only'];
-    for (const f of [ref, model]) if (f) args.push(`--image=${f}`); // -i 는 뒤 인자까지 삼키므로 반드시 등호 형태
-    args.push(GUARD + refNote(ref, model) + '<묘사>\n' + clean(prompt) + '\n</묘사>');
+    for (const f of [...prods, model]) if (f) args.push(`--image=${f}`); // -i 는 뒤 인자까지 삼키므로 반드시 등호 형태
+    args.push(GUARD + refNote(prods.length, model) + '<묘사>\n' + clean(prompt) + '\n</묘사>');
     const p = spawn(codex, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
     p.stdout.on('data', d => { out += d.toString(); });

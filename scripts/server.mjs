@@ -5,7 +5,7 @@
  *   GET  /health                    실행기 상태
  *   GET  /usage                     구독 사용량 (5시간·주간 한도 %)
  *   POST /generate                  Codex CLI 로 이미지 1장 생성 → PNG data URL + 사용량 반환, images/ 에 저장
- *                                   body: { prompt, file, ref?(제품 사진), model?(모델 사진) }
+ *                                   body: { prompt, file, refs?(제품 사진 1~4장, 여러 각도), model?(모델 사진) }
  *
  * 실행: node scripts/server.mjs --open   (실행기.bat 이 이걸 부름)
  * 보안: 127.0.0.1 에만 바인딩 + Host/Origin 이 자기 자신일 때만 생성 허용
@@ -68,15 +68,17 @@ async function generate(req, res) {
   const { prompt, file, ref, model } = job || {};
   if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 3000) return send(res, 400, { error: '프롬프트가 비었거나 너무 깁니다.' });
   if (typeof file !== 'string' || !/^img-\d{2}-\d\.png$/.test(file)) return send(res, 400, { error: '파일 이름 형식이 틀렸습니다.' });
-  const refPath = ref ? refFile(ref) : null;
-  if (ref && !refPath) return send(res, 400, { error: '참조 사진 형식이 틀렸습니다.' });
+  const refList = job.refs !== undefined ? job.refs : (ref ? [ref] : []);
+  if (!Array.isArray(refList) || refList.length > 4) return send(res, 400, { error: '제품 사진은 최대 4장입니다.' });
+  const refPaths = refList.map(refFile);
+  if (refPaths.some(p => !p)) return send(res, 400, { error: '제품 사진 형식이 틀렸습니다.' });
   const modelPath = model ? refFile(model) : null;
   if (model && !modelPath) return send(res, 400, { error: '모델 사진 형식이 틀렸습니다.' });
 
   await acquire();
   try {
     const t0 = Date.now();
-    const { code, out } = await runCodex(CODEX, prompt, { cwd: WORK, ref: refPath, model: modelPath });
+    const { code, out } = await runCodex(CODEX, prompt, { cwd: WORK, refs: refPaths, model: modelPath });
     const src = findOutput(out);
     if (!src) {
       const tail = out.trim().split('\n').slice(-3).join(' / ').slice(0, 300);

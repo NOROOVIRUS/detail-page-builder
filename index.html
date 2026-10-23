@@ -146,6 +146,8 @@
   .genbtn.stop{background:#fff;color:#C4703F;border-color:#C4703F}
   .genbtn:disabled{background:#E3E6E4;border-color:#E3E6E4;color:#9AA0A6;cursor:not-allowed}
   .refrow img{width:56px;height:56px;object-fit:cover;border-radius:6px;display:block;margin:0 auto 4px}
+  .refrow .refthumbs{display:grid;grid-template-columns:repeat(2,36px);gap:3px;justify-content:center;margin-bottom:4px}
+  .refrow .refthumbs img{width:36px;height:36px;margin:0}
 
   /* ===== STAGE ===== */
   .stage{width:600px;transform-origin:top center;position:relative}
@@ -816,7 +818,7 @@ function blocks(m){
 const KIND_RULES = {
   1: { name:'라이프스타일', spec:'실제 생활 공간에 놓인 제품, 자연광, 얕은 심도, 주변 소품 2개 이하, 따뜻하고 차분한 색온도' },
   2: { name:'매크로', spec:'기능 부위 초근접, 질감 강조, 매우 얕은 심도, 배경 완전 블러, 따뜻한 하이라이트' },
-  3: { name:'스튜디오', spec:'무채색 단색 배경, 제품 정면, 부드러운 접지 그림자, 여백 70% 이상, 미니멀' },
+  3: { name:'스튜디오', spec:'무채색 단색 배경, 부드러운 접지 그림자, 여백 70% 이상, 미니멀' },
   4: { name:'GIF', spec:'동작이 보이는 클로즈업, 고정 카메라, 텍스트 없음' }
 };
 
@@ -826,7 +828,7 @@ function slotHint(label){
   if(L.includes('DRY ROOM')) return '제품 없이 공간만. 겨울 실내, 메마르고 차가운 톤, 창밖은 흐림. 상단 48% 여백';
   if(L.includes('SYMPTOM')) return '제품 없이. 건조함을 암시하는 클로즈업. 상단 48% 여백';
   if(L.includes('MUTED')) return '제품 단독, 채도를 낮춘 무채색 톤. 상단 48% 여백';
-  if(L.includes('STUDIO · PRODUCT')) return '제품 정면, 밝은 무채색 배경, 상단 58%에 제품 배치';
+  if(L.includes('STUDIO · PRODUCT')) return '밝은 무채색 배경, 상단 58%에 제품 배치';
   if(L.includes('PACKAGE') || L.includes('BOX')) return '제품과 구성품(케이블·설명서)을 정돈해 배치, 무채색 배경';
   if(L.includes('CTA') || L.includes('FINAL')) return '제품을 감성적으로, 상단 56%에 배치하고 하단은 여백';
   if(L.includes('MACRO')) return '표면 질감과 버튼·포트 등 기능 부위 초근접';
@@ -862,6 +864,29 @@ function slotHintFor(s){
   return parts.length ? parts.join(', ') + '. ' : '';
 }
 
+/* 칸마다 제품을 보는 각도를 다르게 (같은 정면 컷 반복 방지). 제품 없는 칸·감성 컷은 지정 안 함 */
+const ANGLES = [
+  ['HERO', '정면에서 살짝 위(약 15도) 시점'],
+  ['POINT 01', '45도 사선 시점'],
+  ['POINT 02', '기능 부위를 비스듬한 각도로 근접'],
+  ['POINT 03', '측면(옆모습) 시점'],
+  ['POINT 04', '위에서 내려다보는 시점(약 60도)'],
+  ['PRODUCT · MUTED', '정면 시점'],
+  ['STUDIO · PRODUCT', '45도 사선 시점'],
+  ['MACRO · SURFACE', '표면을 비스듬히 스치듯 근접'],
+  ['MACRO · PORT', '버튼·포트 쪽을 정면 근접'],
+  ['GIF', '측면 근접 시점'],
+  ['PACKAGE', '바로 위에서 내려다본 플랫레이'],
+  ['BOX', '박스와 함께 45도 사선 시점'],
+  ['CTA', '정면에서 살짝 아래(로우앵글) 시점'],
+  ['FINAL', '뒤쪽 비스듬한 3/4 시점']
+];
+function slotAngle(label){
+  const L = String(label).toUpperCase();
+  const a = ANGLES.find(([k]) => L.includes(k));
+  return a ? `각도: ${a[1]}. ` : '';
+}
+
 function prompts(m){
   if(!SLOTS.length){
     return [{ n:1, id:'1', kind:'라이프스타일', label:'히어로', file:'img-01-1.png',
@@ -875,7 +900,7 @@ function prompts(m){
       kind: rule.name,
       label: s.label,
       file: `img-${String(i+1).padStart(2,'0')}-${s.kind}.png`,
-      t: `[${s.label}] ${slotSpec(s.kind, s.label)}. ${slotHintFor(s)}제품: ${m.product}. ${slotRatio(s)}, 가장자리가 조금 잘려도 되도록 주요 피사체는 중앙에.`
+      t: `[${s.label}] ${slotSpec(s.kind, s.label)}. ${slotHintFor(s)}${slotAngle(s.label)}제품: ${m.product}. ${slotRatio(s)}, 가장자리가 조금 잘려도 되도록 주요 피사체는 중앙에.`
     };
   });
 }
@@ -1629,7 +1654,7 @@ document.getElementById('btnPromptJson').onclick=()=>{
 const LOCAL_RUNNER = location.port === '7788' && /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
 const GEN_PARALLEL = 2;
 const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let REFS = { ref:null, model:null }, GEN = null, PICK = null;
+let REFS = { ref:[], model:[] }, GEN = null, PICK = null;
 const genBtn = document.getElementById('btnGen');
 const genState = document.getElementById('genState');
 const genHint = document.getElementById('genHint');
@@ -1671,26 +1696,33 @@ if(!LOCAL_RUNNER){
   fetch('/usage').then(r => r.json()).then(drawUsage).catch(()=>{});
 }
 
-/* 참조 사진 2칸: 제품(폰카) · 모델(캐릭터 시트 등). 클릭 선택 · 드래그앤드랍 · ✕ (메모리에만, 저장 안 함) */
-function bindRef(box, key, title, desc){
-  const empty = () => { box.innerHTML = `<b>${title}</b>${desc}`; };
-  empty();
-  const set = async f => {
-    if(!f || !f.type.startsWith('image/')) return;
-    REFS[key] = await readAsDataURL(f);
-    box.innerHTML = `<img src="${REFS[key]}"><b>${title}</b><span data-refclear style="cursor:pointer;color:#C4703F">✕ 빼기</span>`;
+/* 참조 사진 2칸: 제품(폰카, 여러 각도 최대 4장) · 모델(1장). 클릭 선택 · 드래그앤드랍 · ✕ 전체 빼기 (메모리에만, 저장 안 함) */
+function bindRef(box, key, title, desc, max){
+  const draw = () => {
+    const list = REFS[key];
+    box.innerHTML = !list.length ? `<b>${title}</b>${desc}`
+      : `<span class="refthumbs">${list.map(src => `<img src="${src}">`).join('')}</span><b>${title} ${list.length}${max > 1 ? '/' + max : ''}</b>`
+        + `<span>${list.length < max ? '+ 더 넣기 · ' : ''}<span data-refclear style="cursor:pointer;color:#C4703F">✕ 빼기</span></span>`;
+  };
+  draw();
+  const add = async files => {
+    const imgs = [...files].filter(f => f.type && f.type.startsWith('image/'));
+    if(!imgs.length) return;
+    if(max === 1) REFS[key] = [];
+    for(const f of imgs){ if(REFS[key].length >= max) break; REFS[key].push(await readAsDataURL(f)); }
+    draw();
   };
   box.addEventListener('click', e=>{
-    if(e.target.closest('[data-refclear]')){ REFS[key] = null; empty(); return; }
-    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
-    inp.onchange = () => set(inp.files[0]); inp.click();
+    if(e.target.closest('[data-refclear]')){ REFS[key] = []; draw(); return; }
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = max > 1;
+    inp.onchange = () => add(inp.files); inp.click();
   });
   ['dragenter','dragover'].forEach(t=>box.addEventListener(t, e=>{ e.preventDefault(); box.classList.add('hot'); }));
   box.addEventListener('dragleave', ()=>box.classList.remove('hot'));
-  box.addEventListener('drop', e=>{ e.preventDefault(); box.classList.remove('hot'); set(e.dataTransfer.files[0]); });
+  box.addEventListener('drop', e=>{ e.preventDefault(); box.classList.remove('hot'); add(e.dataTransfer.files); });
 }
-bindRef(document.getElementById('refBox'), 'ref', '제품 사진', '<br>폰카 사진 → 제품 모양 유지');
-bindRef(document.getElementById('modelBox'), 'model', '모델 사진', '<br>(선택) 이 인물이 제품과 함께');
+bindRef(document.getElementById('refBox'), 'ref', '제품 사진', '<br>폰카 여러 각도 최대 4장<br>(정면·측면·뒤·위 권장)', 4);
+bindRef(document.getElementById('modelBox'), 'model', '모델 사진', '<br>(선택) 이 인물이 제품과 함께', 1);
 
 /* ---- 생성 결과 모음(갤러리): 칸에 바로 넣지 않고 모아두고, 형님이 골라 배치 ---- */
 function slotNo(key){ const i = SLOTS.findIndex(s => s.key === key); return i < 0 ? '' : String(i+1).padStart(2,'0'); }
@@ -1748,11 +1780,11 @@ genBtn.onclick = async ()=>{
       // 모델 사진은 사람이 어울리는 칸(라이프스타일·스튜디오)에만. 이 경우 "인물 없이" 문구는 뺀다
       // "제품 없이" 칸(문제제기 공간 컷)에는 제품·모델 사진 둘 다 안 보냄
       const noProduct = /제품 없이/.test(t.p.t);
-      const useModel = !noProduct && REFS.model && (t.kind === '1' || t.kind === '3');
+      const useModel = !noProduct && REFS.model.length && (t.kind === '1' || t.kind === '3');
       const prompt = (useModel ? t.p.t.replace(/인물 없이[,.]?\s*/g, '') : t.p.t) + '\n\n' + NEG;
       try{
         const r = await fetch('/generate', { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ prompt, file: t.p.file, ref: (!noProduct && REFS.ref) || undefined, model: useModel ? REFS.model : undefined }) });
+          body: JSON.stringify({ prompt, file: t.p.file, refs: noProduct ? [] : REFS.ref, model: useModel ? REFS.model[0] : undefined }) });
         const j = await r.json();
         if(j.usage) drawUsage(j.usage);
         if(r.status === 429) limited = true;
