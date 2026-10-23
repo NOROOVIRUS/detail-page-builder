@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>상세페이지 빌더 v2 — 테마 교체형</title>
+<title>상세페이지 빌더 | Made by noroovirus</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
@@ -75,6 +75,33 @@
     border:1px solid var(--line);border-radius:6px;background:#fff;color:#111}
   input[type=text]:focus{outline:none;border-color:#3E4A5B}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+  .dropall{border:1.5px dashed #C9CFCC;border-radius:8px;padding:12px 8px;text-align:center;
+    font-size:10.5px;color:#9AA0A6;line-height:1.6;background:#fff;margin-bottom:8px;transition:.15s}
+  .dropall.hot{border-color:#C4703F;background:#FDF6F2;color:#C4703F}
+  .slotlist{max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .slotrow{display:flex;align-items:center;gap:7px;padding:5px 7px;border-bottom:1px solid #F0F1EF;cursor:pointer;transition:.12s}
+  .slotrow:last-child{border-bottom:none}
+  .slotrow:hover{background:#FAFBF9}
+  .slotrow.hot{background:#FDF6F2;box-shadow:inset 0 0 0 2px #C4703F}
+  .slotrow .no{font-size:9.5px;font-weight:800;color:#B4B2A9;width:16px;flex:none;text-align:right}
+  .slotrow .tmb{width:26px;height:26px;border-radius:4px;flex:none;overflow:hidden;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;font-size:8.5px;color:#B4B2A9;font-weight:800}
+  .slotrow .tmb img{width:100%;height:100%;object-fit:cover}
+  .slotrow .lb{flex:1;min-width:0;font-size:10.5px;color:#5A6472;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  .slotrow .lb b{display:block;font-size:9px;color:#B4B2A9;font-weight:700}
+  .slotrow .x{font-size:9px;color:#C9CFCC;padding:2px 4px;flex:none}
+  .slotrow .x:hover{color:#C4703F}
+  .block [data-img].hot{box-shadow:inset 0 0 0 3px #C4703F}
+
+  /* 전체 채우기(풀블리드) — 사진이 블록 전체를 덮고 텍스트는 그 위에 */
+  /* 블록 자신이 .b-xxx 이므로 .fullbg.b-xxx (공백 없음) */
+  .block.fullbg.b-prob .top{background:linear-gradient(to bottom,var(--bgA) 0%,var(--bgA) 68%,var(--bgT) 100%)}
+  .block.fullbg.b-sol .copy,
+  .block.fullbg.b-pkg .copy{background:linear-gradient(to bottom,var(--paperT) 0%,var(--paperA) 26%,var(--paperA) 100%)}
+  .block.fullbg.b-pm .lower{background:linear-gradient(to top,var(--bgA) 0%,var(--bgA) 58%,var(--bgT) 100%)}
+  .block.fullbg.b-cta .copy{background:linear-gradient(to top,var(--paperA) 0%,var(--paperA) 58%,var(--paperT) 100%)}
 
   .picks{display:flex;gap:7px;flex-wrap:wrap}
   .pick{width:44px;height:44px;border-radius:8px;border:2px solid transparent;cursor:pointer}
@@ -278,7 +305,10 @@
   .b-foot p{font-size:12px;line-height:2}
   .b-foot .links{margin-top:26px;font-size:11.5px;letter-spacing:.04em}
 
-  .prompts{margin-top:22px;width:600px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .prompts{margin-top:22px;width:600px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;max-height:360px;display:flex;flex-direction:column}
+  .prompts h3{flex:none}
+  .prompts .pneg{flex:none;padding:9px 16px;font-size:10px;color:#A8AEAB;line-height:1.5;border-bottom:1px solid #F0F1EF;background:#FCFCFB}
+  .prompts .listwrap{overflow-y:auto;flex:1}
   .prompts h3{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;
     padding:13px 16px;border-bottom:1px solid var(--line);font-weight:800}
   .pi{padding:11px 16px;border-bottom:1px solid #F0F1EF;display:flex;gap:10px;align-items:flex-start}
@@ -392,21 +422,12 @@
     </div>
 
     <div class="group">
-      <label>이미지 슬롯</label>
-      <label class="upload"><div class="thumb" id="th1">A</div>
-        <div class="meta"><b>라이프스타일 연출컷</b><small>히어로 · 문제제기 · 감성컷</small></div>
-        <input type="file" accept="image/*" data-slot="1"></label>
-      <label class="upload"><div class="thumb" id="th2">C</div>
-        <div class="meta"><b>매크로 디테일컷</b><small>포인트 · 디테일</small></div>
-        <input type="file" accept="image/*" data-slot="2"></label>
-      <label class="upload"><div class="thumb" id="th3">B</div>
-        <div class="meta"><b>스튜디오 컷</b><small>해결 · 스튜디오 · 패키지</small></div>
-        <input type="file" accept="image/*" data-slot="3"></label>
-      <label class="upload"><div class="thumb" id="th4">G</div>
-        <div class="meta"><b>GIF / 움직이는 컷</b><small>중간중간 삽입</small></div>
-        <input type="file" accept="image/*" data-slot="4"></label>
-      <p class="hint">비워두면 플레이스홀더가 들어갑니다. 아래 프롬프트로 생성한 이미지를 넣으세요.</p>
+      <label>이미지 슬롯 <span id="slotCount" style="color:#C4703F"></span></label>
+      <div class="dropall" id="dropAll">여러 장을 여기에 한 번에 떨어뜨리면<br>img-07-…처럼 번호 붙은 파일은 그 번호 칸에,<br>나머지는 빈 칸부터 순서대로 채워집니다</div>
+      <div class="slotlist" id="slotList"></div>
+      <p class="hint">사진을 <b>미리보기 위로 직접 끌어다 놓아도</b> 됩니다. 슬롯을 클릭하면 파일 선택.</p>
     </div>
+    <div style="margin-top:24px;font-size:10.5px;color:#b0b8c1;text-align:center">Made by noroovirus</div>
   </aside>
 
   <main>
@@ -480,9 +501,12 @@ function josa(word, withBatchim, withoutBatchim){
   if(c < 0xAC00 || c > 0xD7A3) return withoutBatchim;
   return ((c - 0xAC00) % 28 === 0) ? withoutBatchim : withBatchim;
 }
-const img = s => S.imgs[s] ? `<div class="img" data-slot="${s}" style="background-image:url('${S.imgs[s]}')"></div>` : '';
-const ph  = (t,s) => `<div class="ph" data-slot="${s}"><span>${t}</span></div>`;
-const shot = (s,t) => S.imgs[s] ? img(s) : ph(t,s);
+const img = (k,l) => S.imgs[k] ? `<div class="img" data-kind="${k}" data-label="${l}" style="background-image:url('${S.imgs[k]}')"></div>` : '';
+const ph  = (l,k) => `<div class="ph" data-kind="${k}" data-label="${l}"><span>${l}</span></div>`;
+const shot = (k,l) => S.imgs[k] ? img(k,l) : ph(l,k);
+
+/* 슬롯 레지스트리 (decorate 에서 DOM 순서로 채워짐) */
+let SLOTS = [];
 
 /* ================= MODEL ================= */
 function model(){
@@ -515,7 +539,7 @@ function model(){
         `${s.v} ${s.b}이 가능해 공간과 상황에 맞춰 조절할 수 있습니다. 취침 시에는 약하게, 건조한 날에는 강하게 씁니다.`
       ][i]
     })),
-    emo: [`${space} 위, 조용히 놓여 있는 것만으로\n공기의 온도가 달라집니다`,
+    emo: [`${space}에 조용히 놓여 있는 것만으로\n공기의 온도가 달라집니다`,
           `보이지 않는 것을 채우는 일,\n${short}${josa(short,'이','가')} 그 일을 합니다`,
           `하루의 끝에서,\n숨이 편해지는 순간`],
     techH:`물을 데우지 않고\n초음파로 흔들어 보냅니다`,
@@ -751,15 +775,71 @@ function blocks(m){
 }
 
 /* ================= PROMPTS ================= */
+const KIND_RULES = {
+  1: { name:'라이프스타일', spec:'실제 생활 공간에 놓인 제품, 자연광, 얕은 심도, 주변 소품 2개 이하, 따뜻하고 차분한 색온도' },
+  2: { name:'매크로', spec:'기능 부위 초근접, 질감 강조, 매우 얕은 심도, 배경 완전 블러, 따뜻한 하이라이트' },
+  3: { name:'스튜디오', spec:'무채색 단색 배경, 제품 정면, 부드러운 접지 그림자, 여백 70% 이상, 미니멀' },
+  4: { name:'GIF', spec:'동작이 보이는 클로즈업, 고정 카메라, 텍스트 없음' }
+};
+
+function slotHint(label){
+  const L = String(label).toUpperCase();
+  if(L.includes('HERO')) return '제품을 화면 하단 2/3에 두고 상단 1/3은 텍스트용 여백으로 비울 것';
+  if(L.includes('DRY ROOM')) return '제품 없이 공간만. 겨울 실내, 메마르고 차가운 톤, 창밖은 흐림. 상단 48% 여백';
+  if(L.includes('SYMPTOM')) return '제품 없이. 건조함을 암시하는 클로즈업. 상단 48% 여백';
+  if(L.includes('MUTED')) return '제품 단독, 채도를 낮춘 무채색 톤. 상단 48% 여백';
+  if(L.includes('STUDIO · PRODUCT')) return '제품 정면, 밝은 무채색 배경, 상단 58%에 제품 배치';
+  if(L.includes('PACKAGE') || L.includes('BOX')) return '제품과 구성품(케이블·설명서)을 정돈해 배치, 무채색 배경';
+  if(L.includes('CTA') || L.includes('FINAL')) return '제품을 감성적으로, 상단 56%에 배치하고 하단은 여백';
+  if(L.includes('MACRO')) return '표면 질감과 버튼·포트 등 기능 부위 초근접';
+  if(L.includes('EMOTION')) return '인물 없이 공간과 빛으로 분위기만, 제품은 작게 화면 위쪽에. 하단 절반은 글자가 올라가니 어둡고 단순하게';
+  if(L.includes('GIF')) return '동작이 잘 보이는 클로즈업, 정지 이미지 1장으로 생성';
+  if(L.includes('POINT')) return '해당 포인트가 잘 보이는 각도, 상단 62%에 제품';
+  return '제품 중심, 세로 구도';
+}
+
+function slotSpec(kind, label){
+  const L = String(label).toUpperCase();
+  if(L.includes('EMOTION')) return '공간과 빛으로 분위기만 전달, 인물 없이, 제품은 작게 또는 배경에';
+  if(L.includes('DRY ROOM') || L.includes('SYMPTOM')) return '제품 없이 공간만, 메마르고 차가운 톤';
+  if(L.includes('GIF')) return '동작이 보이는 클로즈업, 고정 카메라, 배경 단순';
+  if(L.includes('HERO')) return '제품 중심, 상단 1/3은 텍스트용 여백, 세로 구도';
+  if(L.includes('PACKAGE') || L.includes('BOX')) return '제품과 구성품을 정돈해 배치, 무채색 배경';
+  return (KIND_RULES[kind] || KIND_RULES[1]).spec;
+}
+
+/* Codex image_gen 출력 3종 중 칸 비율에 가장 가까운 것 */
+const slotH = s => (IMGO[s.key] && IMGO[s.key].full) ? BLOCK_H : s.h;
+function slotRatio(s){
+  const h = slotH(s);
+  const r = s.w && h ? s.w / h : 2/3;
+  const opts = [['세로 구도(2:3)', 2/3], ['정사각 구도(1:1)', 1], ['가로 구도(3:2)', 3/2]];
+  return opts.reduce((a,b) => Math.abs(Math.log(r/b[1])) < Math.abs(Math.log(r/a[1])) ? b : a)[0];
+}
+
+/* "상단 N% 여백/배치" 는 블록 전체 기준 지시 → 사진이 블록 일부만 덮는 칸에서는 뺀다 */
+function slotHintFor(s){
+  const full = !slotH(s) || slotH(s) >= BLOCK_H * 0.9;
+  const parts = slotHint(s.label).split(/[.,]\s*/).filter(p => p && (full || !/상단|하단은 여백/.test(p)));
+  return parts.length ? parts.join(', ') + '. ' : '';
+}
+
 function prompts(m){
-  return [
-    {id:'A', t:`[라이프스타일 연출컷] 실제 생활 공간(${m.space} 주변)에 놓인 ${m.product}, 자연광, 얕은 심도, 제품 중심, 주변 소품 2개 이하, 따뜻하고 차분한 색온도. 제품을 화면 하단 2/3에 배치하고 상단은 여백으로 비울 것.`},
-    {id:'A', t:`[문제제기 컷] 건조한 실내, ${m.season} 분위기, 창밖은 차갑고 실내는 메마른 톤. 제품 없이 공간만. 상단 48%는 밝은 여백.`},
-    {id:'C', t:`[매크로 디테일컷] ${m.product}의 기능 부위 초근접, 질감 강조, 매우 얕은 심도, 배경 완전 블러, 따뜻한 하이라이트. 상단 62%에 제품, 하단 38%는 단색 여백.`},
-    {id:'B', t:`[스튜디오 컷] 무채색 단색 배경에 놓인 ${m.product} 정면, 부드러운 접지 그림자, 여백 70% 이상, 미니멀.`},
-    {id:'G', t:`[GIF 소스] ${m.product} 분무 동작 클로즈업, 물안개가 위로 올라오는 3초 루프, 고정 카메라, 미세한 흔들림, 텍스트 없음.`},
-    {id:'B', t:`[패키지 컷] ${m.product} 본체 + USB-C 케이블 + 설명서 + 예비 필터를 정돈해 배치, 무채색 배경, 부드러운 그림자.`}
-  ];
+  if(!SLOTS.length){
+    return [{ n:1, id:'1', kind:'라이프스타일', label:'히어로', file:'img-01-1.png',
+      t:`[히어로] 실제 생활 공간(${m.space})에 놓인 ${m.product}, 자연광, 얕은 심도, 세로 구도` }];
+  }
+  return SLOTS.map((s,i)=>{
+    const rule = KIND_RULES[s.kind] || KIND_RULES[1];
+    return {
+      n: i+1,
+      id: s.kind,
+      kind: rule.name,
+      label: s.label,
+      file: `img-${String(i+1).padStart(2,'0')}-${s.kind}.png`,
+      t: `[${s.label}] ${slotSpec(s.kind, s.label)}. ${slotHintFor(s)}제품: ${m.product}. ${slotRatio(s)}, 가장자리가 조금 잘려도 되도록 주요 피사체는 중앙에.`
+    };
+  });
 }
 const NEG = '네거티브: 텍스트, 워터마크, 로고 왜곡, 손가락 변형, 과채도, HDR 과다, 제품 비율 변경, 제품 복제, 어수선한 배경';
 
@@ -773,6 +853,11 @@ function applyTheme(){
   r.setProperty('--paper',P.paper);
   r.setProperty('--dark',P.dark);
   r.setProperty('--darkText',P.darkText);
+  const a = hexToRgb(P.bg), b = hexToRgb(P.paper);
+  r.setProperty('--bgA', `rgba(${a[0]},${a[1]},${a[2]},.93)`);
+  r.setProperty('--bgT', `rgba(${a[0]},${a[1]},${a[2]},0)`);
+  r.setProperty('--paperA', `rgba(${b[0]},${b[1]},${b[2]},.94)`);
+  r.setProperty('--paperT', `rgba(${b[0]},${b[1]},${b[2]},0)`);
 }
 
 /* ---- 인라인 텍스트 편집 + 레이아웃 ---- */
@@ -800,6 +885,7 @@ function decorate(){
   });
 
   /* 블록별 이미지 요소 (슬롯 위치당 정확히 1개) */
+  SLOTS = [];
   stage.querySelectorAll('.img, .ph').forEach((node,i)=>{
     const key = 'i'+i;
     let el = node;
@@ -811,14 +897,31 @@ function decorate(){
         const ni = document.createElement('div');
         ni.className = 'img';
         ni.dataset.img = key;
-        ni.dataset.slot = el.dataset.slot || '';
+        ni.dataset.kind = el.dataset.kind || '';
+        ni.dataset.label = el.dataset.label || '';
         el.replaceWith(ni);
         el = ni;
       }
       el.style.backgroundImage = `url('${o.src}')`;
       applyImgStyle(el, o);
+      const photo = el.parentElement;
+      if(photo && photo.classList.contains('photo')){
+        if(o.full){ photo.style.top = '0'; photo.style.height = '100%'; }
+        else { photo.style.top = ''; photo.style.height = ''; }
+      }
+      const blk = el.closest('.block');
+      if(blk) blk.classList.toggle('fullbg', !!o.full);
     }
+    const box = el.parentElement && el.parentElement.classList.contains('photo') ? el.parentElement : el;
+    SLOTS.push({
+      key,
+      w: box.offsetWidth, h: box.offsetHeight,
+      kind: node.dataset.kind || '',
+      label: node.dataset.label || '이미지',
+      filled: !!(o && o.src) || node.classList.contains('img')
+    });
   });
+  renderSlotList();
 }
 
 function applyImgStyle(el, o){
@@ -827,6 +930,60 @@ function applyImgStyle(el, o){
   el.style.backgroundRepeat = 'no-repeat';
   el.style.backgroundPosition = 'center';
   el.style.transform = `translate(${o.x||0}%,${o.y||0}%) scale(${o.scale||1})`;
+}
+
+/* ================= 슬롯 목록 / 드래그앤드랍 ================= */
+const KIND_LABEL = {1:'라이프스타일', 2:'매크로', 3:'스튜디오', 4:'GIF'};
+
+function slotSrc(s){
+  const o = IMGO[s.key];
+  if(o && o.src) return o.src;
+  if(s.kind && S.imgs[s.kind]) return S.imgs[s.kind];
+  return null;
+}
+
+function renderSlotList(){
+  const box = document.getElementById('slotList');
+  if(!box) return;
+  const filled = SLOTS.filter(s => slotSrc(s)).length;
+  const cnt = document.getElementById('slotCount');
+  if(cnt) cnt.textContent = `${filled}/${SLOTS.length} 채움`;
+  box.innerHTML = SLOTS.map((s,i)=>{
+    const src = slotSrc(s);
+    return `<div class="slotrow" data-key="${s.key}" title="클릭해서 파일 선택 · 드래그앤드랍 가능">
+      <span class="no">${i+1}</span>
+      <span class="tmb">${src ? `<img src="${src}">` : '+'}</span>
+      <span class="lb">${s.label}<b>${KIND_LABEL[s.kind]||''}</b></span>
+      ${src ? `<span class="x" data-clear="${s.key}">✕</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function readAsDataURL(f){
+  return new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(f); });
+}
+
+/* byName: gen-images.mjs 가 만든 img-07-1.png → 7번 칸. 번호 없는 파일은 startKey부터 순서대로 */
+async function assignFiles(startKey, files, byName){
+  const list = [...files].filter(f => f.type && f.type.startsWith('image/'));
+  if(!list.length) return;
+  const put = async (s, f) => {
+    const src = await readAsDataURL(f);
+    IMGO[s.key] = Object.assign({fit:'cover', scale:1, x:0, y:0}, IMGO[s.key], {src});
+  };
+  const rest = [];
+  for(const f of list){
+    const m = byName && /^img-(\d+)-/i.exec(f.name);
+    const s = m && SLOTS[+m[1]-1];
+    if(s) await put(s, f); else rest.push(f);
+  }
+  const start = Math.max(0, SLOTS.findIndex(s => s.key === startKey));
+  for(let i=0;i<rest.length;i++){
+    const s = SLOTS[start+i];
+    if(!s) break;
+    await put(s, rest[i]);
+  }
+  render();
 }
 
 function render(){
@@ -839,11 +996,13 @@ function render(){
   document.getElementById('lenVal').textContent = (B.length*BLOCK_H).toLocaleString();
   document.getElementById('blkVal').textContent = B.length;
 
+  const PJ = prompts(m);
   document.getElementById('prompts').innerHTML =
-    `<h3>이미지 프롬프트 (슬롯별)</h3>` +
-    prompts(m).map(p=>`<div class="pi"><span class="id">${p.id}</span>
-      <span class="txt">${p.t}<br><span style="color:#A8AEAB">${NEG}</span></span>
-      <button data-copy="${encodeURIComponent(p.t+'\n'+NEG)}">복사</button></div>`).join('');
+    `<h3>이미지 프롬프트 — 슬롯 ${PJ.length}개</h3>
+     <div class="pneg">공통 ${NEG}</div><div class="listwrap">` +
+    PJ.map(p=>`<div class="pi"><span class="id">${p.n}</span>
+      <span class="txt"><b>${p.label || ''}</b>${p.kind ? ' · '+p.kind : ''}<br>${p.t}</span>
+      <button data-copy="${encodeURIComponent(p.t+'\n'+NEG)}">복사</button></div>`).join('') + '</div>';
   document.querySelectorAll('[data-copy]').forEach(b=>{
     b.onclick=()=>{navigator.clipboard.writeText(decodeURIComponent(b.dataset.copy));
       const o=b.textContent;b.textContent='완료';setTimeout(()=>b.textContent=o,900);};
@@ -968,18 +1127,45 @@ document.getElementById('shapes').onclick=e=>{
   t.classList.add('on'); S.badge=t.dataset.badge; render();
 };
 document.querySelectorAll('aside input[type=text]').forEach(i=>i.addEventListener('input',render));
-document.querySelectorAll('.upload input').forEach(inp=>{
-  inp.onchange=e=>{
-    const f=e.target.files[0]; if(!f)return;
-    const r=new FileReader();
-    r.onload=ev=>{
-      S.imgs[inp.dataset.slot]=ev.target.result;
-      document.getElementById('th'+inp.dataset.slot).innerHTML=`<img src="${ev.target.result}">`;
-      render();
-    };
-    r.readAsDataURL(f);
-  };
+
+/* ---- 슬롯 목록: 클릭 / 드래그앤드랍 ---- */
+const slotListEl = document.getElementById('slotList');
+slotListEl.addEventListener('click', e=>{
+  const clr = e.target.closest('[data-clear]');
+  if(clr){ e.stopPropagation(); delete IMGO[clr.dataset.clear]; render(); return; }
+  const row = e.target.closest('.slotrow');
+  if(row) pickImageFor(row.dataset.key);
 });
+['dragenter','dragover'].forEach(t=>slotListEl.addEventListener(t, e=>{
+  const row = e.target.closest('.slotrow'); if(!row) return;
+  e.preventDefault();
+  document.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));
+  row.classList.add('hot');
+}));
+slotListEl.addEventListener('dragleave', e=>{
+  const row = e.target.closest('.slotrow'); if(row) row.classList.remove('hot');
+});
+slotListEl.addEventListener('drop', e=>{
+  const row = e.target.closest('.slotrow'); if(!row) return;
+  e.preventDefault(); row.classList.remove('hot');
+  assignFiles(row.dataset.key, e.dataTransfer.files);
+});
+
+const dropAllEl = document.getElementById('dropAll');
+['dragenter','dragover'].forEach(t=>dropAllEl.addEventListener(t, e=>{
+  e.preventDefault(); dropAllEl.classList.add('hot');
+}));
+dropAllEl.addEventListener('dragleave', ()=>dropAllEl.classList.remove('hot'));
+dropAllEl.addEventListener('drop', e=>{
+  e.preventDefault(); dropAllEl.classList.remove('hot');
+  const empty = SLOTS.find(s => !slotSrc(s));
+  assignFiles(empty ? empty.key : (SLOTS[0] && SLOTS[0].key), e.dataTransfer.files, true);
+});
+dropAllEl.addEventListener('click', ()=>{
+  const empty = SLOTS.find(s => !slotSrc(s));
+  if(empty) pickImageFor(empty.key);
+});
+
 document.getElementById('zoom').addEventListener('input',applyZoom);
 
 /* ================= 선택 · 드래그 · 툴바 ================= */
@@ -1023,18 +1209,52 @@ document.getElementById('fileImg').onchange = e=>{
         const ni = document.createElement('div');
         ni.className = 'img';
         ni.dataset.img = key;
-        ni.dataset.slot = el.dataset.slot || '';
+        ni.dataset.kind = el.dataset.kind || '';
+        ni.dataset.label = el.dataset.label || '';
         el.replaceWith(ni);
         el = ni;
       }
       el.style.backgroundImage = `url('${ev.target.result}')`;
       applyImgStyle(el, IMGO[key]);
+      const photo = el.parentElement;
+      if(photo && photo.classList.contains('photo')){
+        if(IMGO[key].full){ photo.style.top = '0'; photo.style.height = '100%'; }
+        else { photo.style.top = ''; photo.style.height = ''; }
+      }
+      const blk = el.closest('.block');
+      if(blk) blk.classList.toggle('fullbg', !!IMGO[key].full);
       selectEl(el, true);
     }
+    renderSlotList();
     persist(); drawToolbar();
   };
   r.readAsDataURL(f);
 };
+
+/* ---- 미리보기 위로 직접 드래그앤드랍 ---- */
+window.addEventListener('dragover', e => { if(e.dataTransfer && [...(e.dataTransfer.types||[])].includes('Files')) e.preventDefault(); });
+window.addEventListener('drop', e => { if(e.dataTransfer && [...(e.dataTransfer.types||[])].includes('Files')) e.preventDefault(); });
+
+['dragenter','dragover'].forEach(t=>stageEl.addEventListener(t, e=>{
+  const el = e.target.closest('[data-img]');
+  if(!el) return;
+  e.preventDefault();
+  e.stopPropagation();
+  document.querySelectorAll('.hot').forEach(x=>x.classList.remove('hot'));
+  el.classList.add('hot');
+}));
+stageEl.addEventListener('dragleave', e=>{
+  const el = e.target.closest('[data-img]');
+  if(el) el.classList.remove('hot');
+});
+stageEl.addEventListener('drop', e=>{
+  const el = e.target.closest('[data-img]');
+  if(!el) return;
+  e.preventDefault();
+  e.stopPropagation();
+  el.classList.remove('hot');
+  assignFiles(el.dataset.img, e.dataTransfer.files);
+});
 
 stageEl.addEventListener('pointerdown', e=>{
   const txt = e.target.closest('[data-edit]');
@@ -1130,7 +1350,7 @@ function drawToolbar(){
   if(SEL.isImg){
     const key = el.dataset.img;
     const o = IMGO[key] || {};
-    const slot = el.dataset.slot || '';
+    const slot = el.dataset.kind || '';
     toolbarEl.innerHTML = `
       <div class="tb-head"><span class="kind">이미지</span>
         <span class="txt">${key}${slot?' · 슬롯 '+slot:''}${o.src?'':' · 비어 있음'}</span>
@@ -1138,6 +1358,8 @@ function drawToolbar(){
       <div class="tb-row"><span class="lb">맞춤</span>
         <button data-act="fit" data-v="cover" class="${(o.fit||'cover')==='cover'?'on':''}">채우기</button>
         <button data-act="fit" data-v="contain" class="${o.fit==='contain'?'on':''}">맞추기</button>
+        <span class="tb-sep"></span>
+        <button data-act="full" class="${o.full?'on':''}">전체 채우기</button>
         <span class="tb-sep"></span><span class="lb">확대</span>
         <button data-act="zoom" data-v="-0.1">−</button>
         <span class="val">${Math.round((o.scale||1)*100)}%</span>
@@ -1192,16 +1414,24 @@ toolbarEl.addEventListener('click', e=>{
     if(act==='imgpick'){ pickImageFor(key); return; }
     const o = Object.assign({fit:'cover', scale:1, x:0, y:0}, IMGO[key]||{});
     if(act==='fit') o.fit = v;
+    if(act==='full') o.full = !o.full;
     if(act==='zoom') o.scale = Math.max(0.5, Math.min(3, (o.scale||1)+parseFloat(v)));
     if(act==='pos'){ const p=v.split(',').map(Number); o.x=(o.x||0)+p[0]; o.y=(o.y||0)+p[1]; }
     if(act==='imgclear'){ delete IMGO[key]; render(); return; }
     if(act==='imgall'){
-      const slot = el.dataset.slot || '';
+      const slot = el.dataset.kind || '';
       if(!slot || !o.src){ alert('먼저 사진을 넣어주세요.'); return; }
       S.imgs[slot] = o.src; render(); return;
     }
     IMGO[key] = o;
     applyImgStyle(el, o);
+    const photo = el.parentElement;
+    if(photo && photo.classList.contains('photo')){
+      if(o.full){ photo.style.top = '0'; photo.style.height = '100%'; }
+      else { photo.style.top = ''; photo.style.height = ''; }
+    }
+    const blk = el.closest('.block');
+    if(blk) blk.classList.toggle('fullbg', !!o.full);
     persist(); drawToolbar();
     return;
   }
@@ -1233,8 +1463,8 @@ document.getElementById('btnPrompts').onclick=()=>{
   b.textContent='복사됨';setTimeout(()=>b.textContent=o,1200);
 };
 document.getElementById('btnExport').onclick=()=>{
-  const css=Array.from(document.styleSheets[0].cssRules).map(r=>r.cssText).join('\n');
-  const P=pal();
+  /* styleSheets[0] 은 Pretendard(외부 CDN)라 cssRules 접근 시 SecurityError → 페이지 내 <style> 을 직접 읽는다 */
+  const css=document.querySelector('head style').textContent;
   const clone=document.getElementById('stage').cloneNode(true);
   clone.querySelectorAll('[contenteditable]').forEach(el=>{
     el.removeAttribute('contenteditable');
@@ -1252,7 +1482,7 @@ document.getElementById('btnExport').onclick=()=>{
 <title>${val('iProduct')} 상세페이지</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<style>:root{--bg:${P.bg};--soft:${P.soft};--paper:${P.paper};--ink:${P.ink};--accent:${P.accent};--badgeBg:${P.badge};--dark:${P.dark};--darkText:${P.darkText}}
+<style>:root{${document.documentElement.style.cssText}}
 ${css}
 body{background:#fff}
 .wrap{width:600px;margin:0 auto}
@@ -1294,9 +1524,9 @@ document.getElementById('fileProj').onchange=e=>{
 /* ---- prompt JSON (for local batch generation) ---- */
 document.getElementById('btnPromptJson').onclick=()=>{
   const m=model();
-  const jobs=prompts(m).map((p,i)=>({
-    index:i+1, slot:p.id, prompt:p.t, negative:NEG,
-    file:`img-${String(i+1).padStart(2,'0')}-${p.id}.png`
+  const jobs=prompts(m).map(p=>({
+    index:p.n, slot:p.id, label:p.label, kind:p.kind,
+    prompt:p.t, negative:NEG, file:p.file
   }));
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(
