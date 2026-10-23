@@ -1042,10 +1042,18 @@ function flashSaved(){
 function applyState(st){
   if(!st) return;
   if(st.palette && PALETTES[st.palette]) S.palette=st.palette;
-  if(st.badge) S.badge=st.badge;
+  /* 불러온 JSON 은 외부 입력 — HTML/스타일에 그대로 꽂히는 값은 허용 목록만 통과 */
+  if(['circle','square','ribbon','tag','none'].includes(st.badge)) S.badge=st.badge;
   if(st.overrides && typeof st.overrides==='object') OVER = st.overrides;
   if(st.layout && typeof st.layout==='object') LAYOUT = st.layout;
-  if(st.images && typeof st.images==='object') IMGO = st.images;
+  if(st.images && typeof st.images==='object'){
+    IMGO = {};
+    Object.entries(st.images).forEach(([k,o])=>{
+      if(!/^i\d+$/.test(k) || !o || typeof o!=='object') return;
+      if(o.src!==undefined && !/^data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=]+$/i.test(o.src)) delete o.src;
+      IMGO[k] = o;
+    });
+  }
   if(st.custom && typeof st.custom==='object') S.custom = Object.assign(S.custom, st.custom);
   if(st.fields) Object.entries(st.fields).forEach(([k,v])=>{
     const el=document.getElementById(k);
