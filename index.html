@@ -8,8 +8,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root{
-    --bg:#EAF0ED; --soft:#F2F6F4; --ink:#3E4A5B; --accent:#C4703F;
-    --badgeBg:#3E4A5B; --line:#E3E6E4; --panel:#FAFAF8; --muted:#9AA0A6;
+    --bg:#EAF0ED; --soft:#F2F6F4; --paper:#FBFCFB; --ink:#3E4A5B; --accent:#C4703F;
+    --badgeBg:#3E4A5B; --dark:#1F242B; --darkText:#FFFFFF;
+    --line:#E3E6E4; --panel:#FAFAF8; --muted:#9AA0A6;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
@@ -78,6 +79,17 @@
   .picks{display:flex;gap:7px;flex-wrap:wrap}
   .pick{width:44px;height:44px;border-radius:8px;border:2px solid transparent;cursor:pointer}
   .pick.on{border-color:#111}
+  .crow{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+  .crow .clb{font-size:10px;font-weight:700;color:#8A9099;width:26px;flex:none}
+  .crow input[type=color]{width:28px;height:26px;padding:0;border:1px solid var(--line);
+    border-radius:4px;background:#fff;cursor:pointer;flex:none}
+  .crow .chex{width:72px;font-size:10.5px;padding:5px 5px;border:1px solid var(--line);
+    border-radius:4px;font-family:inherit;flex:none}
+  .crow .ccmyk{display:flex;gap:3px;flex:1}
+  .crow .ccmyk input{width:100%;font-size:10px;padding:5px 1px;text-align:center;
+    border:1px solid var(--line);border-radius:4px;font-family:inherit;-moz-appearance:textfield}
+  .crow .ccmyk input::-webkit-outer-spin-button,
+  .crow .ccmyk input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .shapes{display:flex;gap:7px;flex-wrap:wrap}
   .shape{width:52px;height:52px;background:#fff;border:1px solid var(--line);border-radius:8px;
     cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px}
@@ -104,14 +116,22 @@
 
   /* ===== STAGE ===== */
   .stage{width:600px;transform-origin:top center}
-  .block{width:600px;height:1050px;position:relative;overflow:hidden;background:#fff;
+  .block{width:600px;height:1050px;position:relative;overflow:hidden;background:var(--paper);
     display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.07)}
   .block .img{position:absolute;inset:0;background-size:cover;background-position:center}
   .ph{position:absolute;inset:0;background:
       radial-gradient(circle at 50% 42%, rgba(255,255,255,.92), rgba(255,255,255,0) 58%),
-      linear-gradient(160deg,#EDF1EF,#DEE5E1);
+      linear-gradient(160deg,var(--soft),var(--bg));
     display:flex;align-items:center;justify-content:center}
-  .ph span{font-size:11px;letter-spacing:.18em;color:#A8B0AC;font-weight:700}
+  .ph span{font-size:11px;letter-spacing:.18em;color:var(--muted);font-weight:700;opacity:.75}
+  .ph[data-v="1"]{background:
+      radial-gradient(circle at 50% 42%, rgba(255,255,255,.92), rgba(255,255,255,0) 58%),
+      linear-gradient(200deg,var(--bg),var(--soft))}
+  .ph[data-v="2"]{background:
+      radial-gradient(circle at 34% 28%, rgba(255,255,255,.9), rgba(255,255,255,0) 62%),
+      linear-gradient(120deg,var(--soft),var(--bg))}
+  .b-gif .ph,.b-tech .ph{background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.02))}
+  .b-gif .ph span{color:rgba(255,255,255,.35)}
 
   .badge{position:relative;z-index:4;display:flex;flex-direction:column;align-items:center;
     justify-content:center;background:var(--badgeBg);color:#fff;flex:none}
@@ -170,7 +190,7 @@
   .b-pd h1{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.4;color:var(--ink);margin:16px 0 26px}
   .b-pd p{font-size:16px;color:#5F6875;line-height:1.85}
   .b-pd .stats{display:flex;gap:14px;margin-top:36px}
-  .b-pd .stat{flex:1;background:#fff;border-radius:10px;padding:22px 16px;text-align:center}
+  .b-pd .stat{flex:1;background:var(--paper);border-radius:10px;padding:22px 16px;text-align:center}
   .b-pd .stat b{display:block;font-size:24px;font-weight:800;color:var(--accent);letter-spacing:-.02em}
   .b-pd .stat small{display:block;font-size:10.5px;color:var(--muted);margin-top:6px;font-weight:600}
 
@@ -180,19 +200,19 @@
   .b-emo .copy{position:relative;z-index:3;padding:0 60px 96px;color:#fff;text-align:center}
   .b-emo h1{font-size:29px;font-weight:700;letter-spacing:-.02em;line-height:1.5}
 
-  .b-gif{background:#111}
+  .b-gif{background:var(--dark)}
   .b-gif .photo{position:absolute;left:0;right:0;top:12%;height:76%;overflow:hidden}
   .b-gif .lbl{position:relative;z-index:3;margin-top:auto;margin-bottom:56px;text-align:center;
     font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55);font-weight:700}
 
-  .b-tech{background:#111;padding:100px 60px;justify-content:center;color:#fff}
+  .b-tech{background:var(--dark);padding:100px 60px;justify-content:center;color:var(--darkText)}
   .b-tech .no{font-size:11px;letter-spacing:.16em;font-weight:800;color:rgba(255,255,255,.45)}
   .b-tech h1{font-size:33px;font-weight:800;letter-spacing:-.03em;line-height:1.36;margin:18px 0 26px}
   .b-tech p{font-size:15.5px;color:rgba(255,255,255,.72);line-height:1.85}
   .b-tech .diagram{margin-top:40px;height:300px;border:1px dashed rgba(255,255,255,.22);border-radius:12px;
     display:flex;align-items:center;justify-content:center;font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.35)}
 
-  .b-cert{background:#fff;padding:96px 60px;justify-content:center;text-align:center}
+  .b-cert{background:var(--paper);padding:96px 60px;justify-content:center;text-align:center}
   .b-cert h1{font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.36;color:var(--ink)}
   .b-cert .frame{margin:40px 0 28px;height:400px;border:1px solid var(--line);border-radius:12px;
     background:var(--soft);display:flex;align-items:center;justify-content:center;
@@ -206,7 +226,7 @@
   .b-test p{font-size:20px;font-weight:600;color:var(--ink);line-height:1.75;margin:24px 0 30px;letter-spacing:-.02em}
   .b-test .who{font-size:13px;color:var(--muted)}
 
-  .b-pkg{background:#fff}
+  .b-pkg{background:var(--paper)}
   .b-pkg .photo{position:absolute;left:0;right:0;top:0;height:56%;overflow:hidden}
   .b-pkg .copy{position:relative;z-index:3;margin-top:56%;padding:52px 60px 0}
   .b-pkg h1{font-size:31px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
@@ -223,7 +243,7 @@
   .b-spec th{color:#8B9099;font-weight:600;width:40%}
   .b-spec td{font-weight:700;color:var(--ink)}
 
-  .b-guide{background:#fff;padding:96px 60px;justify-content:center}
+  .b-guide{background:var(--paper);padding:96px 60px;justify-content:center}
   .b-guide h1{font-size:31px;font-weight:800;letter-spacing:-.03em;color:var(--ink);margin-bottom:36px}
   .b-guide .step{display:flex;gap:18px;margin-bottom:28px}
   .b-guide .step b{width:40px;height:40px;border-radius:50%;background:var(--bg);color:var(--ink);
@@ -235,7 +255,7 @@
   .b-notice h1{font-size:26px;font-weight:800;color:var(--ink);margin-bottom:28px;letter-spacing:-.02em}
   .b-notice p{font-size:13.5px;color:#6B7280;line-height:2;padding-left:12px;border-left:2px solid var(--line)}
 
-  .b-cta{justify-content:flex-end;text-align:center;background:#fff}
+  .b-cta{justify-content:flex-end;text-align:center;background:var(--paper)}
   .b-cta .photo{position:absolute;left:0;right:0;top:0;height:56%;overflow:hidden}
   .b-cta .copy{position:relative;z-index:3;padding:0 60px 88px}
   .b-cta h1{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.38;color:var(--ink)}
@@ -246,7 +266,7 @@
     font-size:16px;font-weight:800;padding:18px 54px;border-radius:8px}
   .b-cta .note{font-size:11.5px;color:var(--muted);margin-top:16px}
 
-  .b-foot{background:#1A1D21;justify-content:center;padding:0 60px;color:rgba(255,255,255,.55)}
+  .b-foot{background:var(--dark);justify-content:center;padding:0 60px;color:rgba(255,255,255,.55)}
   .b-foot h1{font-size:24px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:20px}
   .b-foot p{font-size:12px;line-height:2}
   .b-foot .links{margin-top:26px;font-size:11.5px;letter-spacing:.04em}
@@ -323,6 +343,33 @@
     <div class="group">
       <label>테마 — 팔레트</label>
       <div class="picks" id="picks"></div>
+      <div id="customPanel" style="display:none;margin-top:10px">
+        <div class="crow"><span class="clb">배경</span>
+          <input type="color" class="cpick" data-k="bg">
+          <input type="text" class="chex" data-hex="bg">
+          <span class="ccmyk" data-cmyk="bg">
+            <input type="number" min="0" max="100" data-c="0"><input type="number" min="0" max="100" data-c="1"><input type="number" min="0" max="100" data-c="2"><input type="number" min="0" max="100" data-c="3">
+          </span></div>
+        <div class="crow"><span class="clb">본문</span>
+          <input type="color" class="cpick" data-k="ink">
+          <input type="text" class="chex" data-hex="ink">
+          <span class="ccmyk" data-cmyk="ink">
+            <input type="number" min="0" max="100" data-c="0"><input type="number" min="0" max="100" data-c="1"><input type="number" min="0" max="100" data-c="2"><input type="number" min="0" max="100" data-c="3">
+          </span></div>
+        <div class="crow"><span class="clb">강조</span>
+          <input type="color" class="cpick" data-k="accent">
+          <input type="text" class="chex" data-hex="accent">
+          <span class="ccmyk" data-cmyk="accent">
+            <input type="number" min="0" max="100" data-c="0"><input type="number" min="0" max="100" data-c="1"><input type="number" min="0" max="100" data-c="2"><input type="number" min="0" max="100" data-c="3">
+          </span></div>
+        <div class="crow"><span class="clb">다크</span>
+          <input type="color" class="cpick" data-k="dark">
+          <input type="text" class="chex" data-hex="dark">
+          <span class="ccmyk" data-cmyk="dark">
+            <input type="number" min="0" max="100" data-c="0"><input type="number" min="0" max="100" data-c="1"><input type="number" min="0" max="100" data-c="2"><input type="number" min="0" max="100" data-c="3">
+          </span></div>
+        <p class="hint">배경을 바꾸면 보조 배경·플레이스홀더·다크 블록이 <b>자동으로 따라갑니다.</b> CMYK는 인쇄 기준값입니다.</p>
+      </div>
     </div>
 
     <div class="group">
@@ -367,14 +414,49 @@
 <script>
 /* ================= THEME ================= */
 const PALETTES = {
-  mint:   {bg:'#EAF0ED', soft:'#F2F6F4', ink:'#3E4A5B', accent:'#C4703F', badge:'#3E4A5B'},
-  cream:  {bg:'#F4F1EC', soft:'#FAF8F4', ink:'#4A443C', accent:'#B4674A', badge:'#4A443C'},
-  sand:   {bg:'#EFE9E0', soft:'#F7F3EC', ink:'#4F4739', accent:'#A96A3C', badge:'#4F4739'},
-  blush:  {bg:'#F7EDEA', soft:'#FCF5F3', ink:'#5A4340', accent:'#C05B5B', badge:'#5A4340'},
-  sky:    {bg:'#E8EEF4', soft:'#F2F6FA', ink:'#3A4A5C', accent:'#4A7BA7', badge:'#3A4A5C'},
-  mono:   {bg:'#F1F1F0', soft:'#F9F9F8', ink:'#1F1F1F', accent:'#111111', badge:'#1F1F1F'}
+  mint:   {bg:'#EAF0ED', soft:'#F2F6F4', paper:'#FBFCFB', ink:'#3E4A5B', accent:'#C4703F', badge:'#3E4A5B', dark:'#1F242B', darkText:'#FFFFFF'},
+  cream:  {bg:'#F4F1EC', soft:'#FAF8F4', paper:'#FDFBF7', ink:'#4A443C', accent:'#B4674A', badge:'#4A443C', dark:'#2A2622', darkText:'#FFFFFF'},
+  sand:   {bg:'#EFE9E0', soft:'#F7F3EC', paper:'#FBF8F2', ink:'#4F4739', accent:'#A96A3C', badge:'#4F4739', dark:'#2B261E', darkText:'#FFFFFF'},
+  blush:  {bg:'#F7EDEA', soft:'#FCF5F3', paper:'#FEFAF9', ink:'#5A4340', accent:'#C05B5B', badge:'#5A4340', dark:'#2E2321', darkText:'#FFFFFF'},
+  sky:    {bg:'#E8EEF4', soft:'#F2F6FA', paper:'#FAFCFE', ink:'#3A4A5C', accent:'#4A7BA7', badge:'#3A4A5C', dark:'#1F2833', darkText:'#FFFFFF'},
+  mono:   {bg:'#F1F1F0', soft:'#F9F9F8', paper:'#FCFCFC', ink:'#1F1F1F', accent:'#111111', badge:'#1F1F1F', dark:'#111111', darkText:'#FFFFFF'}
 };
-const S = { palette:'mint', badge:'circle', imgs:{1:null,2:null,3:null,4:null} };
+/* ---- 색 유틸 ---- */
+function hexToRgb(h){
+  h = String(h||'#000').replace('#','');
+  if(h.length===3) h = h.split('').map(c=>c+c).join('');
+  return [parseInt(h.slice(0,2),16)||0, parseInt(h.slice(2,4),16)||0, parseInt(h.slice(4,6),16)||0];
+}
+function rgbToHex(r,g,b){
+  return '#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function mix(a,b,t){
+  const A=hexToRgb(a), B=hexToRgb(b);
+  return rgbToHex(A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t, A[2]+(B[2]-A[2])*t);
+}
+function rgbToCmyk(r,g,b){
+  r/=255; g/=255; b/=255;
+  const k = 1 - Math.max(r,g,b);
+  if(k >= 1) return [0,0,0,100];
+  return [Math.round((1-r-k)/(1-k)*100), Math.round((1-g-k)/(1-k)*100), Math.round((1-b-k)/(1-k)*100), Math.round(k*100)];
+}
+function cmykToRgb(c,m,y,k){
+  c/=100; m/=100; y/=100; k/=100;
+  return [255*(1-c)*(1-k), 255*(1-m)*(1-k), 255*(1-y)*(1-k)];
+}
+function buildCustom(){
+  const c = S.custom;
+  return {
+    bg:c.bg, ink:c.ink, accent:c.accent, dark:c.dark,
+    soft:mix(c.bg,'#FFFFFF',0.45),
+    paper:mix(c.bg,'#FFFFFF',0.82),
+    badge:c.ink, darkText:'#FFFFFF'
+  };
+}
+function pal(){ return S.palette === 'custom' ? buildCustom() : PALETTES[S.palette]; }
+
+const S = { palette:'mint', badge:'circle', imgs:{1:null,2:null,3:null,4:null},
+  custom:{ bg:'#EAF0ED', ink:'#3E4A5B', accent:'#C4703F', dark:'#1F242B' } };
 let OVER = {};    /* 인라인 편집 텍스트: k0, k1, ... */
 let LAYOUT = {};  /* 요소별 레이아웃: {dx,dy,fs,align,color,z} */
 let IMGO = {};    /* 블록별 이미지 오버라이드: {src,fit,scale,x,y} */
@@ -433,7 +515,7 @@ const badge = (no,label) => `<div class="badge ${S.badge}"><small>${label}</smal
 
 /* ================= BLOCKS ================= */
 function blocks(m){
-  const P = PALETTES[S.palette];
+  const P = pal();
   const B = [];
   const push = h => B.push(h);
 
@@ -666,11 +748,14 @@ const NEG = '네거티브: 텍스트, 워터마크, 로고 왜곡, 손가락 변
 
 /* ================= RENDER ================= */
 function applyTheme(){
-  const P = PALETTES[S.palette];
+  const P = pal();
   const r = document.documentElement.style;
   r.setProperty('--bg',P.bg); r.setProperty('--soft',P.soft);
   r.setProperty('--ink',P.ink); r.setProperty('--accent',P.accent);
   r.setProperty('--badgeBg',P.badge);
+  r.setProperty('--paper',P.paper);
+  r.setProperty('--dark',P.dark);
+  r.setProperty('--darkText',P.darkText);
 }
 
 /* ---- 인라인 텍스트 편집 + 레이아웃 ---- */
@@ -702,6 +787,7 @@ function decorate(){
     const key = 'i'+i;
     let el = node;
     el.dataset.img = key;
+    el.dataset.v = String(i % 3);
     const o = IMGO[key];
     if(o && o.src){
       if(el.classList.contains('ph')){
@@ -766,7 +852,7 @@ const TEXT_IDS=['iProduct','iKicker','iTarget','iSpace','iBrand','iSeason','iSym
 function snapshot(){
   const d={};
   TEXT_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) d[id]=el.value; });
-  return {v:4, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO};
+  return {v:5, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO, custom:S.custom};
 }
 function persist(){
   try{ localStorage.setItem(STORE, JSON.stringify(snapshot())); flashSaved(); }catch(e){}
@@ -784,6 +870,7 @@ function applyState(st){
   if(st.overrides && typeof st.overrides==='object') OVER = st.overrides;
   if(st.layout && typeof st.layout==='object') LAYOUT = st.layout;
   if(st.images && typeof st.images==='object') IMGO = st.images;
+  if(st.custom && typeof st.custom==='object') S.custom = Object.assign(S.custom, st.custom);
   if(st.fields) Object.entries(st.fields).forEach(([k,v])=>{
     const el=document.getElementById(k);
     if(el && typeof v==='string') el.value=v;
@@ -803,10 +890,60 @@ Object.entries(PALETTES).forEach(([k,v])=>{
   d.style.background=`linear-gradient(135deg,${v.bg} 0 50%,${v.accent} 50% 100%)`;
   picks.appendChild(d);
 });
+{
+  const d=document.createElement('div');
+  d.className='pick'+(S.palette==='custom'?' on':'');
+  d.dataset.p='custom'; d.title='커스텀 — 직접 조절';
+  d.style.background='conic-gradient(#E24B4A,#EF9F27,#97C459,#1D9E75,#378ADD,#7F77DD,#E24B4A)';
+  picks.appendChild(d);
+}
+const customPanel = document.getElementById('customPanel');
+customPanel.style.display = S.palette==='custom' ? '' : 'none';
+
+function syncCustomUI(){
+  ['bg','ink','accent','dark'].forEach(k=>{
+    const hex = S.custom[k];
+    const pick = customPanel.querySelector(`.cpick[data-k="${k}"]`);
+    const hx = customPanel.querySelector(`.chex[data-hex="${k}"]`);
+    if(pick && document.activeElement !== pick) pick.value = hex.toLowerCase();
+    if(hx && document.activeElement !== hx) hx.value = hex.toUpperCase();
+    const rgb = hexToRgb(hex);
+    const cmyk = rgbToCmyk(rgb[0],rgb[1],rgb[2]);
+    customPanel.querySelectorAll(`[data-cmyk="${k}"] input`).forEach((inp,i)=>{
+      if(document.activeElement !== inp) inp.value = cmyk[i];
+    });
+  });
+}
+function setCustom(k, hex){
+  S.custom[k] = hex.toUpperCase();
+  syncCustomUI();
+  render();
+}
+customPanel.addEventListener('input', e=>{
+  const t = e.target;
+  if(t.classList.contains('cpick')){ setCustom(t.dataset.k, t.value); return; }
+  if(t.classList.contains('chex')){
+    const v = t.value.trim();
+    if(/^#?[0-9a-fA-F]{6}$/.test(v)) setCustom(t.dataset.hex, v.startsWith('#')?v:'#'+v);
+    return;
+  }
+  if(t.dataset.c !== undefined){
+    const box = t.closest('[data-cmyk]');
+    const vals = [...box.querySelectorAll('input')].map(i=>Math.max(0,Math.min(100, Number(i.value)||0)));
+    const rgb = cmykToRgb(vals[0],vals[1],vals[2],vals[3]);
+    setCustom(box.dataset.cmyk, rgbToHex(rgb[0],rgb[1],rgb[2]));
+  }
+});
+if(S.palette==='custom') syncCustomUI();
+
 picks.onclick=e=>{
   const t=e.target.closest('.pick'); if(!t)return;
   picks.querySelectorAll('.pick').forEach(x=>x.classList.remove('on'));
-  t.classList.add('on'); S.palette=t.dataset.p; render();
+  t.classList.add('on');
+  S.palette=t.dataset.p;
+  customPanel.style.display = S.palette==='custom' ? '' : 'none';
+  if(S.palette==='custom') syncCustomUI();
+  render();
 };
 document.getElementById('shapes').onclick=e=>{
   const t=e.target.closest('.shape'); if(!t)return;
@@ -1080,7 +1217,7 @@ document.getElementById('btnPrompts').onclick=()=>{
 };
 document.getElementById('btnExport').onclick=()=>{
   const css=Array.from(document.styleSheets[0].cssRules).map(r=>r.cssText).join('\n');
-  const P=PALETTES[S.palette];
+  const P=pal();
   const clone=document.getElementById('stage').cloneNode(true);
   clone.querySelectorAll('[contenteditable]').forEach(el=>{
     el.removeAttribute('contenteditable');
@@ -1098,7 +1235,7 @@ document.getElementById('btnExport').onclick=()=>{
 <title>${val('iProduct')} 상세페이지</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<style>:root{--bg:${P.bg};--soft:${P.soft};--ink:${P.ink};--accent:${P.accent};--badgeBg:${P.badge}}
+<style>:root{--bg:${P.bg};--soft:${P.soft};--paper:${P.paper};--ink:${P.ink};--accent:${P.accent};--badgeBg:${P.badge};--dark:${P.dark};--darkText:${P.darkText}}
 ${css}
 body{background:#fff}
 .wrap{width:600px;margin:0 auto}
@@ -1127,6 +1264,9 @@ document.getElementById('fileProj').onchange=e=>{
       applyState(JSON.parse(ev.target.result));
       document.querySelectorAll('.pick').forEach(x=>x.classList.toggle('on',x.dataset.p===S.palette));
       document.querySelectorAll('.shape').forEach(x=>x.classList.toggle('on',x.dataset.badge===S.badge));
+      const cp = document.getElementById('customPanel');
+      cp.style.display = S.palette==='custom' ? '' : 'none';
+      if(S.palette==='custom') syncCustomUI();
       render();
     }catch(err){ alert('프로젝트 파일을 읽을 수 없습니다.'); }
   };
