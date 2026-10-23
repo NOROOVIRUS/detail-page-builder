@@ -140,14 +140,6 @@
   .upload .meta small{font-size:10px;color:var(--muted)}
   .upload input{display:none}
   .hint{font-size:10.5px;color:var(--muted);line-height:1.6;margin-top:5px}
-  .genbtn{width:100%;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;padding:11px;border-radius:8px;
-    border:1px solid #3E4A5B;background:#3E4A5B;color:#fff;transition:.15s}
-  .genbtn:hover{background:#2C3644}
-  .genbtn.stop{background:#fff;color:#C4703F;border-color:#C4703F}
-  .genbtn:disabled{background:#E3E6E4;border-color:#E3E6E4;color:#9AA0A6;cursor:not-allowed}
-  .refrow img{width:56px;height:56px;object-fit:cover;border-radius:6px;display:block;margin:0 auto 4px}
-  .refrow .refthumbs{display:grid;grid-template-columns:repeat(2,36px);gap:3px;justify-content:center;margin-bottom:4px}
-  .refrow .refthumbs img{width:36px;height:36px;margin:0}
 
   /* ===== STAGE ===== */
   .stage{width:600px;transform-origin:top center;position:relative}
@@ -155,19 +147,6 @@
   .pgno{position:absolute;left:-150px;width:132px;text-align:right;margin-top:10px;font-size:44px;font-weight:800;
     color:#9AA0A6;letter-spacing:-.02em;line-height:1;pointer-events:none}
   .pgno small{display:block;font-size:22px;font-weight:700;color:#9AA0A6;margin-top:8px;letter-spacing:0}
-  .refrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .refrow .dropall{margin-bottom:0;min-height:96px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
-  .genrow{display:flex;gap:8px;margin-top:8px}
-  .genrow select{font-family:inherit;font-size:13px;font-weight:700;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:#fff}
-  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
-  .gal{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--bg);cursor:grab;border:2px solid transparent}
-  .gal img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
-  .gal .cap{position:absolute;left:0;right:0;bottom:0;padding:3px 4px;font-size:9px;font-weight:700;color:#fff;
-    background:linear-gradient(to top,rgba(0,0,0,.65),transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .gal .used{position:absolute;left:4px;top:4px;font-size:9px;font-weight:800;color:#fff;background:#C4703F;border-radius:4px;padding:1px 4px}
-  .gal .del{position:absolute;right:3px;top:3px;font-size:10px;color:#fff;background:rgba(0,0,0,.45);border-radius:4px;padding:0 4px;display:none;cursor:pointer}
-  .gal:hover .del{display:block}
-  .gal.pick{border-color:#C4703F}
   .block{width:600px;height:1050px;position:relative;overflow:hidden;background:var(--paper);
     display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.07)}
   .block .img{position:absolute;inset:0;background-size:cover;background-position:center}
@@ -330,18 +309,6 @@
   .b-foot p{font-size:12px;line-height:2}
   .b-foot .links{margin-top:26px;font-size:11.5px;letter-spacing:.04em}
 
-  .prompts{margin-top:22px;width:600px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;max-height:360px;display:flex;flex-direction:column}
-  .prompts h3{flex:none}
-  .prompts .pneg{flex:none;padding:9px 16px;font-size:10px;color:#A8AEAB;line-height:1.5;border-bottom:1px solid #F0F1EF;background:#FCFCFB}
-  .prompts .listwrap{overflow-y:auto;flex:1}
-  .prompts h3{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;
-    padding:13px 16px;border-bottom:1px solid var(--line);font-weight:800}
-  .pi{padding:11px 16px;border-bottom:1px solid #F0F1EF;display:flex;gap:10px;align-items:flex-start}
-  .pi:last-child{border-bottom:none}
-  .pi .id{font-size:9.5px;font-weight:800;color:#fff;background:#3E4A5B;padding:3px 6px;border-radius:3px;flex:none;margin-top:2px}
-  .pi .txt{flex:1;font-size:11.5px;color:#5A6472;line-height:1.6}
-  .pi button{font-family:inherit;font-size:10px;font-weight:700;border:1px solid var(--line);
-    background:#fff;border-radius:4px;padding:4px 8px;cursor:pointer;color:#6B7280;flex:none}
   .zoom{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:11px;color:var(--muted);font-weight:600}
   @media(max-width:1060px){.layout{grid-template-columns:1fr}aside{max-height:none;border-right:none;border-bottom:1px solid var(--line)}main{max-height:none}}
 </style>
@@ -357,8 +324,6 @@
   <button id="btnSaveProj">프로젝트 저장</button>
   <button id="btnLoadProj">불러오기</button>
   <button id="btnResetText">텍스트 초기화</button>
-  <button id="btnPromptJson">프롬프트 JSON</button>
-  <button id="btnPrompts">프롬프트 복사</button>
   <button id="btnExport" class="primary">HTML 내보내기</button>
   <input type="file" id="fileProj" accept=".json" style="display:none">
 </header>
@@ -447,20 +412,6 @@
     </div>
 
     <div class="group">
-      <label>이미지 자동 생성 <span id="genState" style="color:#C4703F"></span></label>
-      <div class="refrow">
-        <div class="dropall" id="refBox"></div>
-        <div class="dropall" id="modelBox"></div>
-      </div>
-      <div class="genrow">
-        <select id="genCount" title="한 번에 만들 장수"><option value="2">2장</option><option value="4">4장</option><option value="6">6장</option></select>
-        <button id="btnGen" class="genbtn">생성</button>
-      </div>
-      <p class="hint" id="usage"></p>
-      <p class="hint" id="genHint">Codex(ChatGPT 구독)로 2장씩 동시에 만듭니다. 추가 요금 없음. 만든 사진은 아래에 모이고, 칸으로 끌어다 놓아 씁니다.</p>
-      <div class="gallery" id="gallery"></div>
-    </div>
-    <div class="group">
       <label>이미지 슬롯 <span id="slotCount" style="color:#C4703F"></span></label>
       <div class="dropall" id="dropAll">여러 장을 여기에 한 번에 떨어뜨리면<br>img-07-…처럼 번호 붙은 파일은 그 번호 칸에,<br>나머지는 빈 칸부터 순서대로 채워집니다</div>
       <div class="slotlist" id="slotList"></div>
@@ -474,7 +425,6 @@
     <div class="stage" id="stage"></div>
     <div class="toolbar" id="toolbar"><div class="empty">요소를 클릭하면 선택됩니다</div></div>
     <input type="file" id="fileImg" accept="image/*" style="display:none">
-    <div class="prompts" id="prompts"></div>
   </main>
 </div>
 
@@ -528,7 +478,6 @@ let OVER = {};    /* 인라인 편집 텍스트: k0, k1, ... */
 let LAYOUT = {};  /* 요소별 레이아웃: {dx,dy,fs,align,color,z} */
 let IMGO = {};    /* 블록별 이미지 오버라이드: {src,fit,scale,x,y} */
 let SEL = null;   /* 현재 선택 요소 */
-let GALLERY = []; /* 자동 생성 결과 모음: {id, key(만들 때 겨냥한 칸), label, src} */
 const BLOCK_H = 1050;
 
 const val = id => document.getElementById(id).value.trim();
@@ -814,98 +763,6 @@ function blocks(m){
   return B;
 }
 
-/* ================= PROMPTS ================= */
-const KIND_RULES = {
-  1: { name:'라이프스타일', spec:'실제 생활 공간에 놓인 제품, 자연광, 얕은 심도, 주변 소품 2개 이하, 따뜻하고 차분한 색온도' },
-  2: { name:'매크로', spec:'기능 부위 초근접, 질감 강조, 매우 얕은 심도, 배경 완전 블러, 따뜻한 하이라이트' },
-  3: { name:'스튜디오', spec:'무채색 단색 배경, 부드러운 접지 그림자, 여백 70% 이상, 미니멀' },
-  4: { name:'GIF', spec:'동작이 보이는 클로즈업, 고정 카메라, 텍스트 없음' }
-};
-
-function slotHint(label){
-  const L = String(label).toUpperCase();
-  if(L.includes('HERO')) return '제품을 화면 하단 2/3에 두고 상단 1/3은 텍스트용 여백으로 비울 것';
-  if(L.includes('DRY ROOM')) return '제품 없이 공간만. 겨울 실내, 메마르고 차가운 톤, 창밖은 흐림. 상단 48% 여백';
-  if(L.includes('SYMPTOM')) return '제품 없이. 건조함을 암시하는 클로즈업. 상단 48% 여백';
-  if(L.includes('MUTED')) return '제품 단독, 채도를 낮춘 무채색 톤. 상단 48% 여백';
-  if(L.includes('STUDIO · PRODUCT')) return '밝은 무채색 배경, 상단 58%에 제품 배치';
-  if(L.includes('PACKAGE') || L.includes('BOX')) return '제품과 구성품(케이블·설명서)을 정돈해 배치, 무채색 배경';
-  if(L.includes('CTA') || L.includes('FINAL')) return '제품을 감성적으로, 상단 56%에 배치하고 하단은 여백';
-  if(L.includes('MACRO')) return '표면 질감과 버튼·포트 등 기능 부위 초근접';
-  if(L.includes('EMOTION')) return '인물 없이 공간과 빛으로 분위기만, 제품은 작게 화면 위쪽에. 하단 절반은 글자가 올라가니 어둡고 단순하게';
-  if(L.includes('GIF')) return '동작이 잘 보이는 클로즈업, 정지 이미지 1장으로 생성';
-  if(L.includes('POINT')) return '해당 포인트가 잘 보이는 각도, 상단 62%에 제품';
-  return '제품 중심, 세로 구도';
-}
-
-function slotSpec(kind, label){
-  const L = String(label).toUpperCase();
-  if(L.includes('EMOTION')) return '공간과 빛으로 분위기만 전달, 인물 없이, 제품은 작게 또는 배경에';
-  if(L.includes('DRY ROOM') || L.includes('SYMPTOM')) return '제품 없이 공간만, 메마르고 차가운 톤';
-  if(L.includes('GIF')) return '동작이 보이는 클로즈업, 고정 카메라, 배경 단순';
-  if(L.includes('HERO')) return '제품 중심, 상단 1/3은 텍스트용 여백, 세로 구도';
-  if(L.includes('PACKAGE') || L.includes('BOX')) return '제품과 구성품을 정돈해 배치, 무채색 배경';
-  return (KIND_RULES[kind] || KIND_RULES[1]).spec;
-}
-
-/* Codex image_gen 출력 3종 중 칸 비율에 가장 가까운 것 */
-const slotH = s => (IMGO[s.key] && IMGO[s.key].full) ? BLOCK_H : s.h;
-function slotRatio(s){
-  const h = slotH(s);
-  const r = s.w && h ? s.w / h : 2/3;
-  const opts = [['세로 구도(2:3)', 2/3], ['정사각 구도(1:1)', 1], ['가로 구도(3:2)', 3/2]];
-  return opts.reduce((a,b) => Math.abs(Math.log(r/b[1])) < Math.abs(Math.log(r/a[1])) ? b : a)[0];
-}
-
-/* "상단 N% 여백/배치" 는 블록 전체 기준 지시 → 사진이 블록 일부만 덮는 칸에서는 뺀다 */
-function slotHintFor(s){
-  const full = !slotH(s) || slotH(s) >= BLOCK_H * 0.9;
-  const parts = slotHint(s.label).split(/[.,]\s*/).filter(p => p && (full || !/상단|하단은 여백/.test(p)));
-  return parts.length ? parts.join(', ') + '. ' : '';
-}
-
-/* 칸마다 제품을 보는 각도를 다르게 (같은 정면 컷 반복 방지). 제품 없는 칸·감성 컷은 지정 안 함 */
-const ANGLES = [
-  ['HERO', '정면에서 살짝 위(약 15도) 시점'],
-  ['POINT 01', '45도 사선 시점'],
-  ['POINT 02', '기능 부위를 비스듬한 각도로 근접'],
-  ['POINT 03', '측면(옆모습) 시점'],
-  ['POINT 04', '위에서 내려다보는 시점(약 60도)'],
-  ['PRODUCT · MUTED', '정면 시점'],
-  ['STUDIO · PRODUCT', '45도 사선 시점'],
-  ['MACRO · SURFACE', '표면을 비스듬히 스치듯 근접'],
-  ['MACRO · PORT', '버튼·포트 쪽을 정면 근접'],
-  ['GIF', '측면 근접 시점'],
-  ['PACKAGE', '바로 위에서 내려다본 플랫레이'],
-  ['BOX', '박스와 함께 45도 사선 시점'],
-  ['CTA', '정면에서 살짝 아래(로우앵글) 시점'],
-  ['FINAL', '뒤쪽 비스듬한 3/4 시점']
-];
-function slotAngle(label){
-  const L = String(label).toUpperCase();
-  const a = ANGLES.find(([k]) => L.includes(k));
-  return a ? `각도: ${a[1]}. ` : '';
-}
-
-function prompts(m){
-  if(!SLOTS.length){
-    return [{ n:1, id:'1', kind:'라이프스타일', label:'히어로', file:'img-01-1.png',
-      t:`[히어로] 실제 생활 공간(${m.space})에 놓인 ${m.product}, 자연광, 얕은 심도, 세로 구도` }];
-  }
-  return SLOTS.map((s,i)=>{
-    const rule = KIND_RULES[s.kind] || KIND_RULES[1];
-    return {
-      n: i+1,
-      id: s.kind,
-      kind: rule.name,
-      label: s.label,
-      file: `img-${String(i+1).padStart(2,'0')}-${s.kind}.png`,
-      t: `[${s.label}] ${slotSpec(s.kind, s.label)}. ${slotHintFor(s)}${slotAngle(s.label)}제품: ${m.product}. ${slotRatio(s)}, 가장자리가 조금 잘려도 되도록 주요 피사체는 중앙에.`
-    };
-  });
-}
-const NEG = '네거티브: 텍스트, 워터마크, 로고 왜곡, 손가락 변형, 과채도, HDR 과다, 제품 비율 변경, 제품 복제, 어수선한 배경';
-
 /* ================= RENDER ================= */
 function applyTheme(){
   const P = pal();
@@ -989,10 +846,8 @@ function decorate(){
       const blk = el.closest('.block');
       if(blk) blk.classList.toggle('fullbg', !!o.full);
     }
-    const box = el.parentElement && el.parentElement.classList.contains('photo') ? el.parentElement : el;
     SLOTS.push({
       key,
-      w: box.offsetWidth, h: box.offsetHeight,
       kind: node.dataset.kind || '',
       label: node.dataset.label || '이미지',
       filled: !!(o && o.src) || node.classList.contains('img')
@@ -1020,7 +875,6 @@ function slotSrc(s){
 }
 
 function renderSlotList(){
-  if(typeof renderGallery === 'function' && document.getElementById('gallery')) renderGallery();
   const box = document.getElementById('slotList');
   if(!box) return;
   const filled = SLOTS.filter(s => slotSrc(s)).length;
@@ -1082,18 +936,6 @@ function render(){
   SEL = null;
   document.getElementById('lenVal').textContent = (B.length*BLOCK_H).toLocaleString();
   document.getElementById('blkVal').textContent = B.length;
-
-  const PJ = prompts(m);
-  document.getElementById('prompts').innerHTML =
-    `<h3>이미지 프롬프트 — 슬롯 ${PJ.length}개</h3>
-     <div class="pneg">공통 ${NEG}</div><div class="listwrap">` +
-    PJ.map(p=>`<div class="pi"><span class="id">${p.n}</span>
-      <span class="txt"><b>${p.label || ''}</b>${p.kind ? ' · '+p.kind : ''}<br>${p.t}</span>
-      <button data-copy="${encodeURIComponent(p.t+'\n'+NEG)}">복사</button></div>`).join('') + '</div>';
-  document.querySelectorAll('[data-copy]').forEach(b=>{
-    b.onclick=()=>{navigator.clipboard.writeText(decodeURIComponent(b.dataset.copy));
-      const o=b.textContent;b.textContent='완료';setTimeout(()=>b.textContent=o,900);};
-  });
   applyZoom();
   drawToolbar();
   persist();
@@ -1115,7 +957,7 @@ const TEXT_IDS=['iProduct','iKicker','iTarget','iSpace','iBrand','iSeason','iSym
 function snapshot(){
   const d={};
   TEXT_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) d[id]=el.value; });
-  return {v:6, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO, custom:S.custom, gallery:GALLERY};
+  return {v:6, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO, custom:S.custom};
 }
 /* 사진까지 저장 시도 → 용량 초과면 사진만 빼고 저장 (글자·위치 편집은 절대 잃지 않게) */
 function persist(){
@@ -1124,7 +966,7 @@ function persist(){
   try{
     const lite = {};
     Object.entries(IMGO).forEach(([k,o]) => { const {src, ...rest} = o; lite[k] = rest; });
-    localStorage.setItem(STORE, JSON.stringify(Object.assign(st, {images: lite, gallery: []})));
+    localStorage.setItem(STORE, JSON.stringify(Object.assign(st, {images: lite})));
     flashSaved('사진 제외 저장됨 · 사진은 프로젝트 저장으로');
   }catch(e){}
 }
@@ -1150,8 +992,6 @@ function applyState(st){
       IMGO[k] = o;
     });
   }
-  if(Array.isArray(st.gallery)) GALLERY = st.gallery.filter(g => g && typeof g.id==='string' && /^[a-z0-9]{1,20}$/.test(g.id) && /^i\d+$/.test(g.key)
-      && /^data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=]+$/i.test(g.src)).map(g => ({id:g.id.slice(0,20), key:g.key, label:String(g.label||'').slice(0,60), src:g.src}));
   if(st.custom && typeof st.custom==='object') S.custom = Object.assign(S.custom, st.custom);
   if(st.fields) Object.entries(st.fields).forEach(([k,v])=>{
     const el=document.getElementById(k);
@@ -1240,7 +1080,7 @@ slotListEl.addEventListener('click', e=>{
   const clr = e.target.closest('[data-clear]');
   if(clr){ e.stopPropagation(); delete IMGO[clr.dataset.clear]; render(); return; }
   const row = e.target.closest('.slotrow');
-  if(row && !takePick(row.dataset.key)) pickImageFor(row.dataset.key);
+  if(row) pickImageFor(row.dataset.key);
 });
 ['dragenter','dragover'].forEach(t=>slotListEl.addEventListener(t, e=>{
   const row = e.target.closest('.slotrow'); if(!row) return;
@@ -1254,8 +1094,7 @@ slotListEl.addEventListener('dragleave', e=>{
 slotListEl.addEventListener('drop', e=>{
   const row = e.target.closest('.slotrow'); if(!row) return;
   e.preventDefault(); row.classList.remove('hot');
-  const gid = e.dataTransfer.getData('text/x-gal');
-  if(gid) useGallery(gid, row.dataset.key); else assignFiles(row.dataset.key, e.dataTransfer.files);
+  assignFiles(row.dataset.key, e.dataTransfer.files);
 });
 
 const dropAllEl = document.getElementById('dropAll');
@@ -1364,15 +1203,13 @@ stageEl.addEventListener('drop', e=>{
   e.preventDefault();
   e.stopPropagation();
   el.classList.remove('hot');
-  const gid = e.dataTransfer.getData('text/x-gal');
-  if(gid) useGallery(gid, el.dataset.img); else assignFiles(el.dataset.img, e.dataTransfer.files);
+  assignFiles(el.dataset.img, e.dataTransfer.files);
 });
 
 stageEl.addEventListener('pointerdown', e=>{
   const txt = e.target.closest('[data-edit]');
   const imgBox = e.target.closest('[data-img]');
   if(!txt && !imgBox) return;
-  if(!txt && takePick(imgBox.dataset.img)) return;
   if(txt && txt.getAttribute('contenteditable')==='true') return;
 
   selectEl(txt || imgBox, !txt);
@@ -1569,12 +1406,6 @@ document.getElementById('btnResetText').onclick=()=>{
   OVER={}; LAYOUT={};
   render();
 };
-document.getElementById('btnPrompts').onclick=()=>{
-  const txt=prompts(model()).map((p,i)=>`#${i+1} [${p.id}]\n${p.t}\n${NEG}`).join('\n\n');
-  navigator.clipboard.writeText(txt);
-  const b=document.getElementById('btnPrompts'),o=b.textContent;
-  b.textContent='복사됨';setTimeout(()=>b.textContent=o,1200);
-};
 document.getElementById('btnExport').onclick=()=>{
   /* styleSheets[0] 은 Pretendard(외부 CDN)라 cssRules 접근 시 SecurityError → 페이지 내 <style> 을 직접 읽는다 */
   const css=document.querySelector('head style').textContent;
@@ -1635,181 +1466,6 @@ document.getElementById('fileProj').onchange=e=>{
   e.target.value='';
 };
 
-/* ---- prompt JSON (for local batch generation) ---- */
-document.getElementById('btnPromptJson').onclick=()=>{
-  const m=model();
-  const jobs=prompts(m).map(p=>({
-    index:p.n, slot:p.id, label:p.label, kind:p.kind,
-    prompt:p.t, negative:NEG, file:p.file
-  }));
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(
-    [JSON.stringify({product:m.product, blockCount:40, jobs},null,2)],
-    {type:'application/json'}));
-  a.download='image-prompts.json';
-  a.click();
-};
-
-/* ================= 이미지 자동 생성 (로컬 실행기 server.mjs → Codex CLI) ================= */
-const LOCAL_RUNNER = location.port === '7788' && /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
-const GEN_PARALLEL = 2;
-const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let REFS = { ref:[], model:[] }, GEN = null, PICK = null;
-const genBtn = document.getElementById('btnGen');
-const genState = document.getElementById('genState');
-const genHint = document.getElementById('genHint');
-const usageEl = document.getElementById('usage');
-const galleryEl = document.getElementById('gallery');
-
-function drawGen(){
-  const n = +document.getElementById('genCount').value;
-  if(!GEN){ genBtn.textContent = `${n}장 생성`; genBtn.classList.remove('stop'); genState.textContent = ''; return; }
-  genState.textContent = `${GEN.done + GEN.fail}/${GEN.total}`;
-  genBtn.textContent = GEN.stop ? '멈추는 중… (진행 중인 것만 마저 받음)' : `멈추기 · 생성 중 ${GEN.done + GEN.fail}/${GEN.total}`;
-  genBtn.classList.add('stop');
-}
-document.getElementById('genCount').onchange = drawGen;
-
-/* 구독 사용량 표시 + 장당 소모 추정 (이번 화면에서 만든 장수 기준) */
-let USE0 = null, USE_N = 0, USE_LAST = null;
-function drawUsage(u){
-  if(!u || !u.fiveHour) return;
-  USE_LAST = u;
-  if(!USE0) USE0 = u;
-  const h = u.fiveHour, w = u.week || {};
-  const at = new Date(h.resetsAt).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-  let t = `<b>구독 사용량</b> 5시간 한도 <b>${h.used}%</b> (${at} 초기화) · 주간 <b>${w.used ?? '-'}%</b>`;
-  const d = h.used - USE0.fiveHour.used;
-  if(USE_N > 0 && h.resetsAt === USE0.fiveHour.resetsAt && d > 0){
-    const per = d / USE_N;
-    t += `<br>이번에 ${USE_N}장 → ${d}% 사용 · 장당 약 ${per.toFixed(1)}% · <b>남은 한도로 약 ${Math.floor((100 - h.used) / per)}장</b>`;
-  } else if(USE_N > 0){
-    t += `<br>이번에 ${USE_N}장 — 사용량 %가 아직 안 움직임(1% 단위). 더 만들면 장당 소모가 계산됩니다`;
-  }
-  usageEl.innerHTML = t;
-}
-
-if(!LOCAL_RUNNER){
-  genBtn.disabled = true;
-  genHint.innerHTML = '자동 생성은 <b>바탕화면 "상세페이지 빌더" 실행기</b>로 열었을 때만 됩니다. (이 주소에서는 사진 직접 넣기만 가능)';
-} else {
-  fetch('/usage').then(r => r.json()).then(drawUsage).catch(()=>{});
-}
-
-/* 참조 사진 2칸: 제품(폰카, 여러 각도 최대 4장) · 모델(1장). 클릭 선택 · 드래그앤드랍 · ✕ 전체 빼기 (메모리에만, 저장 안 함) */
-function bindRef(box, key, title, desc, max){
-  const draw = () => {
-    const list = REFS[key];
-    box.innerHTML = !list.length ? `<b>${title}</b>${desc}`
-      : `<span class="refthumbs">${list.map(src => `<img src="${src}">`).join('')}</span><b>${title} ${list.length}${max > 1 ? '/' + max : ''}</b>`
-        + `<span>${list.length < max ? '+ 더 넣기 · ' : ''}<span data-refclear style="cursor:pointer;color:#C4703F">✕ 빼기</span></span>`;
-  };
-  draw();
-  const add = async files => {
-    const imgs = [...files].filter(f => f.type && f.type.startsWith('image/'));
-    if(!imgs.length) return;
-    if(max === 1) REFS[key] = [];
-    for(const f of imgs){ if(REFS[key].length >= max) break; REFS[key].push(await readAsDataURL(f)); }
-    draw();
-  };
-  box.addEventListener('click', e=>{
-    if(e.target.closest('[data-refclear]')){ REFS[key] = []; draw(); return; }
-    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = max > 1;
-    inp.onchange = () => add(inp.files); inp.click();
-  });
-  ['dragenter','dragover'].forEach(t=>box.addEventListener(t, e=>{ e.preventDefault(); box.classList.add('hot'); }));
-  box.addEventListener('dragleave', ()=>box.classList.remove('hot'));
-  box.addEventListener('drop', e=>{ e.preventDefault(); box.classList.remove('hot'); add(e.dataTransfer.files); });
-}
-bindRef(document.getElementById('refBox'), 'ref', '제품 사진', '<br>폰카 여러 각도 최대 4장<br>(정면·측면·뒤·위 권장)', 4);
-bindRef(document.getElementById('modelBox'), 'model', '모델 사진', '<br>(선택) 이 인물이 제품과 함께', 1);
-
-/* ---- 생성 결과 모음(갤러리): 칸에 바로 넣지 않고 모아두고, 형님이 골라 배치 ---- */
-function slotNo(key){ const i = SLOTS.findIndex(s => s.key === key); return i < 0 ? '' : String(i+1).padStart(2,'0'); }
-function renderGallery(){
-  galleryEl.innerHTML = GALLERY.map(g => {
-    const used = SLOTS.map((s,i) => IMGO[s.key] && IMGO[s.key].src === g.src ? i+1 : 0).filter(Boolean);
-    return `<div class="gal${PICK === g.id ? ' pick' : ''}" draggable="true" data-gal="${esc(g.id)}" title="${esc(g.label)} — 칸으로 끌어다 놓기 · 칸 선택 후 클릭 · 더블클릭 = 원래 칸">
-      <img src="${g.src}"><span class="cap">#${slotNo(g.key)} ${esc(g.label)}</span>
-      ${used.length ? `<span class="used">${used.join(',')}번 사용</span>` : ''}<span class="del" data-galdel="${esc(g.id)}">✕</span></div>`;
-  }).join('');
-}
-function useGallery(id, key){
-  const g = GALLERY.find(x => x.id === id);
-  if(!g || !key) return;
-  IMGO[key] = Object.assign({fit:'cover', scale:1, x:0, y:0}, IMGO[key], {src:g.src});
-  paintImg(key); renderSlotList(); renderGallery(); persist();
-}
-galleryEl.addEventListener('dragstart', e=>{
-  const el = e.target.closest('[data-gal]'); if(!el) return;
-  e.dataTransfer.setData('text/x-gal', el.dataset.gal); e.dataTransfer.effectAllowed = 'copy';
-});
-galleryEl.addEventListener('click', e=>{
-  const del = e.target.closest('[data-galdel]');
-  if(del){ GALLERY = GALLERY.filter(g => g.id !== del.dataset.galdel); renderGallery(); persist(); return; }
-  const el = e.target.closest('[data-gal]'); if(!el) return;
-  if(SEL && SEL.isImg){ useGallery(el.dataset.gal, SEL.el.dataset.img); return; }
-  PICK = PICK === el.dataset.gal ? null : el.dataset.gal; renderGallery();
-  genHint.textContent = PICK ? '사진 선택됨 — 이제 넣을 칸(미리보기 이미지 또는 슬롯 목록)을 클릭하세요.' : '';
-});
-galleryEl.addEventListener('dblclick', e=>{
-  const el = e.target.closest('[data-gal]'); if(!el) return;
-  const g = GALLERY.find(x => x.id === el.dataset.gal); if(g) useGallery(g.id, g.key);
-});
-/* 갤러리에서 고른 사진(PICK) → 칸 클릭 시 넣기 */
-function takePick(key){ if(!PICK) return false; useGallery(PICK, key); PICK = null; renderGallery(); genHint.textContent = ''; return true; }
-
-/* 다음 N칸 생성: 빈 칸 중 아직 만든 사진이 적은 칸부터 */
-genBtn.onclick = async ()=>{
-  if(GEN){ GEN.stop = true; drawGen(); return; }
-  const n = +document.getElementById('genCount').value;
-  const P = prompts(model());
-  const made = k => GALLERY.filter(g => g.key === k).length;
-  const todo = SLOTS.map((s,i)=>({ key:s.key, kind:s.kind, p:P[i], i }))
-    .filter(t => !slotSrc(SLOTS[t.i]))
-    .sort((a,b) => made(a.key) - made(b.key) || a.i - b.i)
-    .slice(0, n);
-  if(!todo.length){ genHint.textContent = '빈 칸이 없습니다. 다시 만들 칸은 ✕ 로 비운 뒤 누르세요.'; return; }
-  GEN = { stop:false, done:0, fail:0, total:todo.length, t0:Date.now() };
-  genHint.textContent = `${todo.map(t => '#' + slotNo(t.key)).join(' ')} 생성 중 — 장당 약 40~90초, ${GEN_PARALLEL}장씩 동시에.`;
-  drawGen();
-  let next = 0, down = false, limited = false;
-  const worker = async ()=>{
-    while(!GEN.stop && !down && !limited && next < todo.length){
-      const t = todo[next++];
-      // 모델 사진은 사람이 어울리는 칸(라이프스타일·스튜디오)에만. 이 경우 "인물 없이" 문구는 뺀다
-      // "제품 없이" 칸(문제제기 공간 컷)에는 제품·모델 사진 둘 다 안 보냄
-      const noProduct = /제품 없이/.test(t.p.t);
-      const useModel = !noProduct && REFS.model.length && (t.kind === '1' || t.kind === '3');
-      const prompt = (useModel ? t.p.t.replace(/인물 없이[,.]?\s*/g, '') : t.p.t) + '\n\n' + NEG;
-      try{
-        const r = await fetch('/generate', { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ prompt, file: t.p.file, refs: noProduct ? [] : REFS.ref, model: useModel ? REFS.model[0] : undefined }) });
-        const j = await r.json();
-        if(j.usage) drawUsage(j.usage);
-        if(r.status === 429) limited = true;
-        if(!r.ok || !j.dataUrl) throw new Error(j.error || '생성 실패');
-        const src = await readAsDataURL(await (await fetch(j.dataUrl)).blob());
-        GALLERY.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), key: t.key, label: t.p.label, src });
-        GEN.done++; USE_N++;
-        renderGallery(); persist();
-      }catch(err){
-        GEN.fail++;
-        if(err instanceof TypeError) down = true; // 네트워크 오류 = 실행기 꺼짐
-        console.warn('[자동 생성]', t.p.file, err.message);
-      }
-      if(USE_LAST) drawUsage(USE_LAST);
-      drawGen();
-    }
-  };
-  await Promise.all(Array.from({length: Math.min(GEN_PARALLEL, todo.length)}, worker));
-  const sec = Math.round((Date.now() - GEN.t0)/1000);
-  genHint.textContent = limited ? `구독 사용량 한도에 걸렸습니다 (이번 성공 ${GEN.done}장). 위 초기화 시각 이후 다시 누르세요.`
-    : down ? `실행기가 꺼져서 멈췄습니다 (성공 ${GEN.done}장). 실행기를 다시 켜고 누르세요.`
-    : `완료: 성공 ${GEN.done}장 · 실패 ${GEN.fail}장 · ${Math.floor(sec/60)}분 ${sec%60}초 — 아래 사진을 칸으로 끌어다 놓으세요.`;
-  GEN = null; drawGen();
-};
-drawGen();
 
 render();
 </script>
