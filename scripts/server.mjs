@@ -3,7 +3,9 @@
  * server.mjs — 상세페이지 빌더 로컬 실행기
  *   http://127.0.0.1:7788/          빌더 화면 (index.html)
  *   GET  /health                    실행기 상태
- *   POST /generate                  Codex CLI 로 이미지 1장 생성 → PNG data URL 반환 + images/ 에 저장
+ *   GET  /usage                     구독 사용량 (5시간·주간 한도 %)
+ *   POST /generate                  Codex CLI 로 이미지 1장 생성 → PNG data URL + 사용량 반환, images/ 에 저장
+ *                                   body: { prompt, file, ref?(제품 사진), model?(모델 사진) }
  *
  * 실행: node scripts/server.mjs --open   (실행기.bat 이 이걸 부름)
  * 보안: 127.0.0.1 에만 바인딩 + Host/Origin 이 자기 자신일 때만 생성 허용
@@ -15,7 +17,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findCodex, runCodex, findOutput } from './codex.mjs';
+import { findCodex, runCodex, findOutput, readUsage } from './codex.mjs';
 
 const PORT = 7788;
 const ORIGINS = [`http://127.0.0.1:${PORT}`, `http://localhost:${PORT}`];
@@ -23,7 +25,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'images');          // 생성 결과 보관 (.gitignore)
 const WORK = join(OUT, '.work');           // codex 작업 폴더 (고정)
 const MAX_BODY = 20 * 1024 * 1024;         // 참조 사진 data URL 포함
-const MAX_PARALLEL = 3;                    // 실측 3장 동시 52초 · 4장 이상 미검증
+const MAX_PARALLEL = 2;                    // 형님 지시: 2장씩 (3장 동시도 실측 52초 정상)
 const CODEX = findCodex();
 mkdirSync(WORK, { recursive: true });
 
@@ -63,25 +65,28 @@ async function generate(req, res) {
     return send(res, 415, { error: 'JSON 만 받습니다.' });
   let job;
   try { job = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: '요청을 읽을 수 없습니다.' }); }
-  const { prompt, file, ref } = job || {};
+  const { prompt, file, ref, model } = job || {};
   if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 3000) return send(res, 400, { error: '프롬프트가 비었거나 너무 깁니다.' });
   if (typeof file !== 'string' || !/^img-\d{2}-\d\.png$/.test(file)) return send(res, 400, { error: '파일 이름 형식이 틀렸습니다.' });
   const refPath = ref ? refFile(ref) : null;
   if (ref && !refPath) return send(res, 400, { error: '참조 사진 형식이 틀렸습니다.' });
+  const modelPath = model ? refFile(model) : null;
+  if (model && !modelPath) return send(res, 400, { error: '모델 사진 형식이 틀렸습니다.' });
 
   await acquire();
   try {
     const t0 = Date.now();
-    const { code, out } = await runCodex(CODEX, prompt, { cwd: WORK, ref: refPath });
+    const { code, out } = await runCodex(CODEX, prompt, { cwd: WORK, ref: refPath, model: modelPath });
     const src = findOutput(out);
     if (!src) {
       const tail = out.trim().split('\n').slice(-3).join(' / ').slice(0, 300);
       console.log(`✗ ${file} 실패 (exit ${code}) ${tail}`);
-      return send(res, 502, { error: '이미지가 만들어지지 않았습니다.', detail: tail });
+      const limited = /usage limit|rate limit|429|exceeded/i.test(out);
+      return send(res, limited ? 429 : 502, { error: limited ? '구독 사용량 한도에 걸렸습니다.' : '이미지가 만들어지지 않았습니다.', detail: tail, usage: readUsage() });
     }
     copyFileSync(src, join(OUT, file));
     console.log(`✓ ${file} ${Math.round((Date.now() - t0) / 1000)}초`);
-    send(res, 200, { file, dataUrl: 'data:image/png;base64,' + readFileSync(src).toString('base64') });
+    send(res, 200, { file, dataUrl: 'data:image/png;base64,' + readFileSync(src).toString('base64'), usage: readUsage() });
   } finally { release(); }
 }
 
@@ -94,6 +99,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
       return res.end(readFileSync(join(ROOT, 'index.html')));
     }
+    if (req.method === 'GET' && url.pathname === '/usage') return send(res, 200, readUsage() || {});
     if (req.method === 'GET' && url.pathname === '/health') return send(res, 200, { ok: true, parallel: MAX_PARALLEL });
     if (req.method === 'POST' && url.pathname === '/generate') return await generate(req, res);
     send(res, 404, { error: 'not found' });

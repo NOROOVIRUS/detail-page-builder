@@ -145,10 +145,27 @@
   .genbtn:hover{background:#2C3644}
   .genbtn.stop{background:#fff;color:#C4703F;border-color:#C4703F}
   .genbtn:disabled{background:#E3E6E4;border-color:#E3E6E4;color:#9AA0A6;cursor:not-allowed}
-  #refBox img{width:56px;height:56px;object-fit:cover;border-radius:6px;display:block;margin:0 auto 4px}
+  .refrow img{width:56px;height:56px;object-fit:cover;border-radius:6px;display:block;margin:0 auto 4px}
 
   /* ===== STAGE ===== */
-  .stage{width:600px;transform-origin:top center}
+  .stage{width:600px;transform-origin:top center;position:relative}
+  /* 블록 번호 (빌더 전용, 내보내기 때 제거) */
+  .pgno{position:absolute;left:-150px;width:132px;text-align:right;margin-top:10px;font-size:44px;font-weight:800;
+    color:#9AA0A6;letter-spacing:-.02em;line-height:1;pointer-events:none}
+  .pgno small{display:block;font-size:22px;font-weight:700;color:#9AA0A6;margin-top:8px;letter-spacing:0}
+  .refrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .refrow .dropall{margin-bottom:0;min-height:96px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
+  .genrow{display:flex;gap:8px;margin-top:8px}
+  .genrow select{font-family:inherit;font-size:13px;font-weight:700;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:#fff}
+  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+  .gal{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--bg);cursor:grab;border:2px solid transparent}
+  .gal img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+  .gal .cap{position:absolute;left:0;right:0;bottom:0;padding:3px 4px;font-size:9px;font-weight:700;color:#fff;
+    background:linear-gradient(to top,rgba(0,0,0,.65),transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gal .used{position:absolute;left:4px;top:4px;font-size:9px;font-weight:800;color:#fff;background:#C4703F;border-radius:4px;padding:1px 4px}
+  .gal .del{position:absolute;right:3px;top:3px;font-size:10px;color:#fff;background:rgba(0,0,0,.45);border-radius:4px;padding:0 4px;display:none;cursor:pointer}
+  .gal:hover .del{display:block}
+  .gal.pick{border-color:#C4703F}
   .block{width:600px;height:1050px;position:relative;overflow:hidden;background:var(--paper);
     display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.07)}
   .block .img{position:absolute;inset:0;background-size:cover;background-position:center}
@@ -200,7 +217,7 @@
   .b-trans p{font-size:15px;color:rgba(255,255,255,.6);margin-top:22px;letter-spacing:.02em}
 
   .b-sol .photo{position:absolute;left:0;right:0;top:0;height:58%;overflow:hidden}
-  .b-sol .copy{position:relative;z-index:3;margin-top:58%;padding:52px 60px 0;text-align:center}
+  .b-sol .copy{position:relative;z-index:3;margin-top:609px;padding:52px 60px 0;text-align:center}
   .b-sol h2{font-size:22px;font-weight:600;color:var(--muted);letter-spacing:-.02em}
   .b-sol h1{font-size:34px;font-weight:800;letter-spacing:-.035em;color:var(--ink);margin-top:12px;line-height:1.36}
 
@@ -268,7 +285,7 @@
 
   .b-pkg{background:var(--paper)}
   .b-pkg .photo{position:absolute;left:0;right:0;top:0;height:56%;overflow:hidden}
-  .b-pkg .copy{position:relative;z-index:3;margin-top:56%;padding:52px 60px 0}
+  .b-pkg .copy{position:relative;z-index:3;margin-top:588px;padding:52px 60px 0}
   .b-pkg h1{font-size:31px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
   .b-pkg ul{list-style:none;margin-top:24px}
   .b-pkg li{display:flex;justify-content:space-between;font-size:15px;padding:13px 0;
@@ -429,9 +446,17 @@
 
     <div class="group">
       <label>이미지 자동 생성 <span id="genState" style="color:#C4703F"></span></label>
-      <div class="dropall" id="refBox">참조 사진(선택) — 폰카로 찍은 제품 사진을 놓으면<br>제품 모양은 그대로, 배경만 바꿔서 만듭니다</div>
-      <button id="btnGen" class="genbtn">빈 칸 자동 생성</button>
-      <p class="hint" id="genHint">Codex(ChatGPT 구독)로 3장씩 동시에 만들어 칸에 바로 채웁니다. 추가 요금 없음.</p>
+      <div class="refrow">
+        <div class="dropall" id="refBox"></div>
+        <div class="dropall" id="modelBox"></div>
+      </div>
+      <div class="genrow">
+        <select id="genCount" title="한 번에 만들 장수"><option value="2">2장</option><option value="4">4장</option><option value="6">6장</option></select>
+        <button id="btnGen" class="genbtn">생성</button>
+      </div>
+      <p class="hint" id="usage"></p>
+      <p class="hint" id="genHint">Codex(ChatGPT 구독)로 2장씩 동시에 만듭니다. 추가 요금 없음. 만든 사진은 아래에 모이고, 칸으로 끌어다 놓아 씁니다.</p>
+      <div class="gallery" id="gallery"></div>
     </div>
     <div class="group">
       <label>이미지 슬롯 <span id="slotCount" style="color:#C4703F"></span></label>
@@ -501,6 +526,7 @@ let OVER = {};    /* 인라인 편집 텍스트: k0, k1, ... */
 let LAYOUT = {};  /* 요소별 레이아웃: {dx,dy,fs,align,color,z} */
 let IMGO = {};    /* 블록별 이미지 오버라이드: {src,fit,scale,x,y} */
 let SEL = null;   /* 현재 선택 요소 */
+let GALLERY = []; /* 자동 생성 결과 모음: {id, key(만들 때 겨냥한 칸), label, src} */
 const BLOCK_H = 1050;
 
 const val = id => document.getElementById(id).value.trim();
@@ -875,8 +901,22 @@ function applyTheme(){
 /* ---- 인라인 텍스트 편집 + 레이아웃 ---- */
 const EDITABLE = 'h1,h2,p,.kicker,.en,.tagline,.who,.lbl,.no,.q,.t,.d,.stat b,.stat small,td,th,.btn,.note,.links,.price b';
 
+const BLOCK_NAME = {'b-hero':'히어로','b-prob':'문제제기','b-trans':'전환','b-sol':'해결','b-index':'소구점','b-pm':'포인트','b-pd':'상세',
+  'b-emo':'감성','b-gif':'GIF','b-tech':'테크','b-detail':'디테일','b-cert':'인증서','b-test':'후기','b-pkg':'구성품','b-spec':'스펙',
+  'b-guide':'사용법','b-notice':'구매안내','b-cta':'CTA','b-foot':'푸터'};
+
 function decorate(){
   const stage = document.getElementById('stage');
+
+  /* 블록 번호 라벨 (블록 바깥 왼쪽 여백) */
+  const blks = [...stage.querySelectorAll(':scope > .block')];
+  blks.forEach((b,i)=>{
+    const t = [...b.classList].find(c => BLOCK_NAME[c]);
+    const n = document.createElement('div');
+    n.className = 'pgno';
+    n.innerHTML = `${String(i+1).padStart(2,'0')}<small>${BLOCK_NAME[t] || ''}</small>`;
+    b.before(n);
+  });
 
   stage.querySelectorAll(EDITABLE).forEach((el,i)=>{
     const k = 'k'+i;
@@ -955,6 +995,7 @@ function slotSrc(s){
 }
 
 function renderSlotList(){
+  if(typeof renderGallery === 'function' && document.getElementById('gallery')) renderGallery();
   const box = document.getElementById('slotList');
   if(!box) return;
   const filled = SLOTS.filter(s => slotSrc(s)).length;
@@ -1049,7 +1090,7 @@ const TEXT_IDS=['iProduct','iKicker','iTarget','iSpace','iBrand','iSeason','iSym
 function snapshot(){
   const d={};
   TEXT_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) d[id]=el.value; });
-  return {v:5, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO, custom:S.custom};
+  return {v:6, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO, custom:S.custom, gallery:GALLERY};
 }
 /* 사진까지 저장 시도 → 용량 초과면 사진만 빼고 저장 (글자·위치 편집은 절대 잃지 않게) */
 function persist(){
@@ -1058,7 +1099,7 @@ function persist(){
   try{
     const lite = {};
     Object.entries(IMGO).forEach(([k,o]) => { const {src, ...rest} = o; lite[k] = rest; });
-    localStorage.setItem(STORE, JSON.stringify(Object.assign(st, {images: lite})));
+    localStorage.setItem(STORE, JSON.stringify(Object.assign(st, {images: lite, gallery: []})));
     flashSaved('사진 제외 저장됨 · 사진은 프로젝트 저장으로');
   }catch(e){}
 }
@@ -1084,6 +1125,8 @@ function applyState(st){
       IMGO[k] = o;
     });
   }
+  if(Array.isArray(st.gallery)) GALLERY = st.gallery.filter(g => g && typeof g.id==='string' && /^i\d+$/.test(g.key)
+      && /^data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=]+$/i.test(g.src)).map(g => ({id:g.id.slice(0,20), key:g.key, label:String(g.label||'').slice(0,60), src:g.src}));
   if(st.custom && typeof st.custom==='object') S.custom = Object.assign(S.custom, st.custom);
   if(st.fields) Object.entries(st.fields).forEach(([k,v])=>{
     const el=document.getElementById(k);
@@ -1172,7 +1215,7 @@ slotListEl.addEventListener('click', e=>{
   const clr = e.target.closest('[data-clear]');
   if(clr){ e.stopPropagation(); delete IMGO[clr.dataset.clear]; render(); return; }
   const row = e.target.closest('.slotrow');
-  if(row) pickImageFor(row.dataset.key);
+  if(row && !takePick(row.dataset.key)) pickImageFor(row.dataset.key);
 });
 ['dragenter','dragover'].forEach(t=>slotListEl.addEventListener(t, e=>{
   const row = e.target.closest('.slotrow'); if(!row) return;
@@ -1186,7 +1229,8 @@ slotListEl.addEventListener('dragleave', e=>{
 slotListEl.addEventListener('drop', e=>{
   const row = e.target.closest('.slotrow'); if(!row) return;
   e.preventDefault(); row.classList.remove('hot');
-  assignFiles(row.dataset.key, e.dataTransfer.files);
+  const gid = e.dataTransfer.getData('text/x-gal');
+  if(gid) useGallery(gid, row.dataset.key); else assignFiles(row.dataset.key, e.dataTransfer.files);
 });
 
 const dropAllEl = document.getElementById('dropAll');
@@ -1295,13 +1339,15 @@ stageEl.addEventListener('drop', e=>{
   e.preventDefault();
   e.stopPropagation();
   el.classList.remove('hot');
-  assignFiles(el.dataset.img, e.dataTransfer.files);
+  const gid = e.dataTransfer.getData('text/x-gal');
+  if(gid) useGallery(gid, el.dataset.img); else assignFiles(el.dataset.img, e.dataTransfer.files);
 });
 
 stageEl.addEventListener('pointerdown', e=>{
   const txt = e.target.closest('[data-edit]');
   const imgBox = e.target.closest('[data-img]');
   if(!txt && !imgBox) return;
+  if(!txt && takePick(imgBox.dataset.img)) return;
   if(txt && txt.getAttribute('contenteditable')==='true') return;
 
   selectEl(txt || imgBox, !txt);
@@ -1508,6 +1554,7 @@ document.getElementById('btnExport').onclick=()=>{
   /* styleSheets[0] 은 Pretendard(외부 CDN)라 cssRules 접근 시 SecurityError → 페이지 내 <style> 을 직접 읽는다 */
   const css=document.querySelector('head style').textContent;
   const clone=document.getElementById('stage').cloneNode(true);
+  clone.querySelectorAll('.pgno').forEach(el=>el.remove());
   clone.querySelectorAll('[contenteditable]').forEach(el=>{
     el.removeAttribute('contenteditable');
     el.removeAttribute('spellcheck');
@@ -1580,79 +1627,157 @@ document.getElementById('btnPromptJson').onclick=()=>{
 
 /* ================= 이미지 자동 생성 (로컬 실행기 server.mjs → Codex CLI) ================= */
 const LOCAL_RUNNER = location.port === '7788' && /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
-const GEN_PARALLEL = 3;
-let REF_SRC = null, GEN = null;
+const GEN_PARALLEL = 2;
+const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let REFS = { ref:null, model:null }, GEN = null, PICK = null;
 const genBtn = document.getElementById('btnGen');
 const genState = document.getElementById('genState');
 const genHint = document.getElementById('genHint');
-const refBox = document.getElementById('refBox');
-const REF_EMPTY = refBox.innerHTML;
+const usageEl = document.getElementById('usage');
+const galleryEl = document.getElementById('gallery');
 
 function drawGen(){
-  if(!GEN){ genBtn.textContent = '빈 칸 자동 생성'; genBtn.classList.remove('stop'); return; }
+  const n = +document.getElementById('genCount').value;
+  if(!GEN){ genBtn.textContent = `${n}장 생성`; genBtn.classList.remove('stop'); genState.textContent = ''; return; }
   genState.textContent = `${GEN.done + GEN.fail}/${GEN.total}`;
   genBtn.textContent = GEN.stop ? '멈추는 중… (진행 중인 것만 마저 받음)' : `멈추기 · 생성 중 ${GEN.done + GEN.fail}/${GEN.total}`;
   genBtn.classList.add('stop');
+}
+document.getElementById('genCount').onchange = drawGen;
+
+/* 구독 사용량 표시 + 장당 소모 추정 (이번 화면에서 만든 장수 기준) */
+let USE0 = null, USE_N = 0, USE_LAST = null;
+function drawUsage(u){
+  if(!u || !u.fiveHour) return;
+  USE_LAST = u;
+  if(!USE0) USE0 = u;
+  const h = u.fiveHour, w = u.week || {};
+  const at = new Date(h.resetsAt).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+  let t = `<b>구독 사용량</b> 5시간 한도 <b>${h.used}%</b> (${at} 초기화) · 주간 <b>${w.used ?? '-'}%</b>`;
+  const d = h.used - USE0.fiveHour.used;
+  if(USE_N > 0 && h.resetsAt === USE0.fiveHour.resetsAt && d > 0){
+    const per = d / USE_N;
+    t += `<br>이번에 ${USE_N}장 → ${d}% 사용 · 장당 약 ${per.toFixed(1)}% · <b>남은 한도로 약 ${Math.floor((100 - h.used) / per)}장</b>`;
+  } else if(USE_N > 0){
+    t += `<br>이번에 ${USE_N}장 — 사용량 %가 아직 안 움직임(1% 단위). 더 만들면 장당 소모가 계산됩니다`;
+  }
+  usageEl.innerHTML = t;
 }
 
 if(!LOCAL_RUNNER){
   genBtn.disabled = true;
   genHint.innerHTML = '자동 생성은 <b>바탕화면 "상세페이지 빌더" 실행기</b>로 열었을 때만 됩니다. (이 주소에서는 사진 직접 넣기만 가능)';
+} else {
+  fetch('/usage').then(r => r.json()).then(drawUsage).catch(()=>{});
 }
 
-/* 참조 사진: 클릭 선택 · 드래그앤드랍 · ✕ 로 해제 (메모리에만, 저장 안 함) */
-async function setRef(f){
-  if(!f || !f.type.startsWith('image/')) return;
-  REF_SRC = await readAsDataURL(f);
-  refBox.innerHTML = `<img src="${REF_SRC}">참조 사진 사용 중 · <b data-refclear style="cursor:pointer">✕ 빼기</b>`;
+/* 참조 사진 2칸: 제품(폰카) · 모델(캐릭터 시트 등). 클릭 선택 · 드래그앤드랍 · ✕ (메모리에만, 저장 안 함) */
+function bindRef(box, key, title, desc){
+  const empty = () => { box.innerHTML = `<b>${title}</b>${desc}`; };
+  empty();
+  const set = async f => {
+    if(!f || !f.type.startsWith('image/')) return;
+    REFS[key] = await readAsDataURL(f);
+    box.innerHTML = `<img src="${REFS[key]}"><b>${title}</b><span data-refclear style="cursor:pointer;color:#C4703F">✕ 빼기</span>`;
+  };
+  box.addEventListener('click', e=>{
+    if(e.target.closest('[data-refclear]')){ REFS[key] = null; empty(); return; }
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = () => set(inp.files[0]); inp.click();
+  });
+  ['dragenter','dragover'].forEach(t=>box.addEventListener(t, e=>{ e.preventDefault(); box.classList.add('hot'); }));
+  box.addEventListener('dragleave', ()=>box.classList.remove('hot'));
+  box.addEventListener('drop', e=>{ e.preventDefault(); box.classList.remove('hot'); set(e.dataTransfer.files[0]); });
 }
-refBox.addEventListener('click', e=>{
-  if(e.target.closest('[data-refclear]')){ REF_SRC = null; refBox.innerHTML = REF_EMPTY; return; }
-  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
-  inp.onchange = () => setRef(inp.files[0]); inp.click();
+bindRef(document.getElementById('refBox'), 'ref', '제품 사진', '<br>폰카 사진 → 제품 모양 유지');
+bindRef(document.getElementById('modelBox'), 'model', '모델 사진', '<br>(선택) 이 인물이 제품과 함께');
+
+/* ---- 생성 결과 모음(갤러리): 칸에 바로 넣지 않고 모아두고, 형님이 골라 배치 ---- */
+function slotNo(key){ const i = SLOTS.findIndex(s => s.key === key); return i < 0 ? '' : String(i+1).padStart(2,'0'); }
+function renderGallery(){
+  galleryEl.innerHTML = GALLERY.map(g => {
+    const used = SLOTS.map((s,i) => IMGO[s.key] && IMGO[s.key].src === g.src ? i+1 : 0).filter(Boolean);
+    return `<div class="gal${PICK === g.id ? ' pick' : ''}" draggable="true" data-gal="${g.id}" title="${esc(g.label)} — 칸으로 끌어다 놓기 · 칸 선택 후 클릭 · 더블클릭 = 원래 칸">
+      <img src="${g.src}"><span class="cap">#${slotNo(g.key)} ${esc(g.label)}</span>
+      ${used.length ? `<span class="used">${used.join(',')}번 사용</span>` : ''}<span class="del" data-galdel="${g.id}">✕</span></div>`;
+  }).join('');
+}
+function useGallery(id, key){
+  const g = GALLERY.find(x => x.id === id);
+  if(!g || !key) return;
+  IMGO[key] = Object.assign({fit:'cover', scale:1, x:0, y:0}, IMGO[key], {src:g.src});
+  paintImg(key); renderSlotList(); renderGallery(); persist();
+}
+galleryEl.addEventListener('dragstart', e=>{
+  const el = e.target.closest('[data-gal]'); if(!el) return;
+  e.dataTransfer.setData('text/x-gal', el.dataset.gal); e.dataTransfer.effectAllowed = 'copy';
 });
-['dragenter','dragover'].forEach(t=>refBox.addEventListener(t, e=>{ e.preventDefault(); refBox.classList.add('hot'); }));
-refBox.addEventListener('dragleave', ()=>refBox.classList.remove('hot'));
-refBox.addEventListener('drop', e=>{ e.preventDefault(); refBox.classList.remove('hot'); setRef(e.dataTransfer.files[0]); });
+galleryEl.addEventListener('click', e=>{
+  const del = e.target.closest('[data-galdel]');
+  if(del){ GALLERY = GALLERY.filter(g => g.id !== del.dataset.galdel); renderGallery(); persist(); return; }
+  const el = e.target.closest('[data-gal]'); if(!el) return;
+  if(SEL && SEL.isImg){ useGallery(el.dataset.gal, SEL.el.dataset.img); return; }
+  PICK = PICK === el.dataset.gal ? null : el.dataset.gal; renderGallery();
+  genHint.textContent = PICK ? '사진 선택됨 — 이제 넣을 칸(미리보기 이미지 또는 슬롯 목록)을 클릭하세요.' : '';
+});
+galleryEl.addEventListener('dblclick', e=>{
+  const el = e.target.closest('[data-gal]'); if(!el) return;
+  const g = GALLERY.find(x => x.id === el.dataset.gal); if(g) useGallery(g.id, g.key);
+});
+/* 갤러리에서 고른 사진(PICK) → 칸 클릭 시 넣기 */
+function takePick(key){ if(!PICK) return false; useGallery(PICK, key); PICK = null; renderGallery(); genHint.textContent = ''; return true; }
 
-/* 빈 칸만 골라 GEN_PARALLEL 장씩 생성 → 도착하는 대로 칸에 채움 */
+/* 다음 N칸 생성: 빈 칸 중 아직 만든 사진이 적은 칸부터 */
 genBtn.onclick = async ()=>{
   if(GEN){ GEN.stop = true; drawGen(); return; }
+  const n = +document.getElementById('genCount').value;
   const P = prompts(model());
-  const todo = SLOTS.map((s,i)=>({ key:s.key, p:P[i] })).filter((t,i)=>!slotSrc(SLOTS[i]));
+  const made = k => GALLERY.filter(g => g.key === k).length;
+  const todo = SLOTS.map((s,i)=>({ key:s.key, kind:s.kind, p:P[i], i }))
+    .filter(t => !slotSrc(SLOTS[t.i]))
+    .sort((a,b) => made(a.key) - made(b.key) || a.i - b.i)
+    .slice(0, n);
   if(!todo.length){ genHint.textContent = '빈 칸이 없습니다. 다시 만들 칸은 ✕ 로 비운 뒤 누르세요.'; return; }
   GEN = { stop:false, done:0, fail:0, total:todo.length, t0:Date.now() };
-  genHint.textContent = `${todo.length}칸 생성 시작 — 장당 약 50~90초, ${GEN_PARALLEL}장씩 동시에. 그동안 편집해도 됩니다.`;
+  genHint.textContent = `${todo.map(t => '#' + slotNo(t.key)).join(' ')} 생성 중 — 장당 약 40~90초, ${GEN_PARALLEL}장씩 동시에.`;
   drawGen();
-  let next = 0, down = false;
+  let next = 0, down = false, limited = false;
   const worker = async ()=>{
-    while(!GEN.stop && !down && next < todo.length){
+    while(!GEN.stop && !down && !limited && next < todo.length){
       const t = todo[next++];
-      document.querySelector(`[data-img="${t.key}"]`)?.classList.add('hot');
+      // 모델 사진은 사람이 어울리는 칸(라이프스타일·스튜디오)에만. 이 경우 "인물 없이" 문구는 뺀다
+      // "제품 없이" 칸(문제제기 공간 컷)에는 제품·모델 사진 둘 다 안 보냄
+      const noProduct = /제품 없이/.test(t.p.t);
+      const useModel = !noProduct && REFS.model && (t.kind === '1' || t.kind === '3');
+      const prompt = (useModel ? t.p.t.replace(/인물 없이[,.]?\s*/g, '') : t.p.t) + '\n\n' + NEG;
       try{
         const r = await fetch('/generate', { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ prompt: t.p.t + '\n\n' + NEG, file: t.p.file, ref: REF_SRC || undefined }) });
+          body: JSON.stringify({ prompt, file: t.p.file, ref: (!noProduct && REFS.ref) || undefined, model: useModel ? REFS.model : undefined }) });
         const j = await r.json();
+        if(j.usage) drawUsage(j.usage);
+        if(r.status === 429) limited = true;
         if(!r.ok || !j.dataUrl) throw new Error(j.error || '생성 실패');
         const src = await readAsDataURL(await (await fetch(j.dataUrl)).blob());
-        IMGO[t.key] = Object.assign({fit:'cover', scale:1, x:0, y:0}, IMGO[t.key], {src});
-        paintImg(t.key);
-        GEN.done++;
+        GALLERY.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), key: t.key, label: t.p.label, src });
+        GEN.done++; USE_N++;
+        renderGallery(); persist();
       }catch(err){
         GEN.fail++;
         if(err instanceof TypeError) down = true; // 네트워크 오류 = 실행기 꺼짐
         console.warn('[자동 생성]', t.p.file, err.message);
       }
-      document.querySelector(`[data-img="${t.key}"]`)?.classList.remove('hot');
-      renderSlotList(); persist(); drawGen();
+      if(USE_LAST) drawUsage(USE_LAST);
+      drawGen();
     }
   };
   await Promise.all(Array.from({length: Math.min(GEN_PARALLEL, todo.length)}, worker));
   const sec = Math.round((Date.now() - GEN.t0)/1000);
-  genHint.textContent = down ? `실행기가 꺼져서 멈췄습니다 (성공 ${GEN.done}장). 실행기를 다시 켜고 누르면 남은 칸부터 이어서 만듭니다.`
-    : `완료: 성공 ${GEN.done}장 · 실패 ${GEN.fail}장 · ${Math.floor(sec/60)}분 ${sec%60}초${GEN.fail ? ' — 다시 누르면 실패한 칸만 다시 만듭니다' : ''}`;
-  GEN = null; genState.textContent = ''; drawGen();
+  genHint.textContent = limited ? `구독 사용량 한도에 걸렸습니다 (이번 성공 ${GEN.done}장). 위 초기화 시각 이후 다시 누르세요.`
+    : down ? `실행기가 꺼져서 멈췄습니다 (성공 ${GEN.done}장). 실행기를 다시 켜고 누르세요.`
+    : `완료: 성공 ${GEN.done}장 · 실패 ${GEN.fail}장 · ${Math.floor(sec/60)}분 ${sec%60}초 — 아래 사진을 칸으로 끌어다 놓으세요.`;
+  GEN = null; drawGen();
 };
+drawGen();
 
 render();
 </script>
