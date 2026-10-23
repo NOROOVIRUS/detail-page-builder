@@ -4,14 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>상세페이지 빌더 v2 — 테마 교체형</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root{
     --bg:#EAF0ED; --soft:#F2F6F4; --ink:#3E4A5B; --accent:#C4703F;
     --badgeBg:#3E4A5B; --line:#E3E6E4; --panel:#FAFAF8; --muted:#9AA0A6;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
-    background:#F2F3F1; color:#111; -webkit-font-smoothing:antialiased}
+  body{font-family:'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+    background:#F2F3F1; color:#111; -webkit-font-smoothing:antialiased;
+    word-break:keep-all; overflow-wrap:break-word}
+
+  [contenteditable]{outline:none; cursor:text; border-radius:3px}
+  [contenteditable]:hover{box-shadow:0 0 0 1px rgba(196,112,63,.45)}
+  [contenteditable]:focus{box-shadow:0 0 0 2px var(--accent); background:rgba(255,255,255,.35)}
 
   header{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
     border-bottom:1px solid var(--line);padding:12px 22px;display:flex;align-items:center;gap:12px}
@@ -239,6 +246,7 @@
   <div class="sp"></div>
   <button id="btnSaveProj">프로젝트 저장</button>
   <button id="btnLoadProj">불러오기</button>
+  <button id="btnResetText">텍스트 초기화</button>
   <button id="btnPromptJson">프롬프트 JSON</button>
   <button id="btnPrompts">프롬프트 복사</button>
   <button id="btnExport" class="primary">HTML 내보내기</button>
@@ -337,6 +345,7 @@ const PALETTES = {
   mono:   {bg:'#F1F1F0', soft:'#F9F9F8', ink:'#1F1F1F', accent:'#111111', badge:'#1F1F1F'}
 };
 const S = { palette:'mint', badge:'circle', imgs:{1:null,2:null,3:null,4:null} };
+let OVER = {};   /* 인라인 편집된 텍스트 오버라이드: k0, k1, ... */
 const BLOCK_H = 1050;
 
 const val = id => document.getElementById(id).value.trim();
@@ -633,11 +642,26 @@ function applyTheme(){
   r.setProperty('--badgeBg',P.badge);
 }
 
+/* ---- 인라인 텍스트 편집 ---- */
+const EDITABLE = 'h1,h2,p,.kicker,.en,.tagline,.who,.lbl,.no,.q,.t,.d,.stat b,.stat small,td,th,.btn,.note,.links,.price b';
+
+function assignEditKeys(){
+  const stage = document.getElementById('stage');
+  stage.querySelectorAll(EDITABLE).forEach((el,i)=>{
+    const k = 'k'+i;
+    el.dataset.edit = k;
+    if (OVER[k] !== undefined) el.textContent = OVER[k];
+    el.setAttribute('contenteditable','true');
+    el.setAttribute('spellcheck','false');
+  });
+}
+
 function render(){
   applyTheme();
   const m = model();
   const B = blocks(m);
   document.getElementById('stage').innerHTML = B.join('');
+  assignEditKeys();
   document.getElementById('lenVal').textContent = (B.length*BLOCK_H).toLocaleString();
   document.getElementById('blkVal').textContent = B.length;
 
@@ -670,7 +694,7 @@ const TEXT_IDS=['iProduct','iKicker','iTarget','iSpace','iBrand','iSeason','iSym
 function snapshot(){
   const d={};
   TEXT_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) d[id]=el.value; });
-  return {v:2, palette:S.palette, badge:S.badge, fields:d};
+  return {v:3, palette:S.palette, badge:S.badge, fields:d, overrides:OVER};
 }
 function persist(){
   try{ localStorage.setItem(STORE, JSON.stringify(snapshot())); flashSaved(); }catch(e){}
@@ -685,6 +709,7 @@ function applyState(st){
   if(!st) return;
   if(st.palette && PALETTES[st.palette]) S.palette=st.palette;
   if(st.badge) S.badge=st.badge;
+  if(st.overrides && typeof st.overrides==='object') OVER = st.overrides;
   if(st.fields) Object.entries(st.fields).forEach(([k,v])=>{
     const el=document.getElementById(k);
     if(el && typeof v==='string') el.value=v;
@@ -728,6 +753,39 @@ document.querySelectorAll('.upload input').forEach(inp=>{
   };
 });
 document.getElementById('zoom').addEventListener('input',applyZoom);
+
+/* ---- 인라인 텍스트 편집 ---- */
+const stageEl = document.getElementById('stage');
+stageEl.addEventListener('input', e=>{
+  const el = e.target.closest('[data-edit]');
+  if(!el) return;
+  OVER[el.dataset.edit] = el.textContent;
+  persist();
+});
+stageEl.addEventListener('paste', e=>{
+  const el = e.target.closest('[data-edit]');
+  if(!el) return;
+  e.preventDefault();
+  const t = (e.clipboardData || window.clipboardData).getData('text');
+  document.execCommand('insertText', false, t);
+});
+stageEl.addEventListener('keydown', e=>{
+  const el = e.target.closest('[data-edit]');
+  if(!el) return;
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); el.blur(); }
+  else if(e.key==='Enter' && e.shiftKey){
+    e.preventDefault();
+    document.execCommand('insertHTML', false, '<br>');
+  }
+});
+
+/* ---- 텍스트 초기화 ---- */
+document.getElementById('btnResetText').onclick=()=>{
+  if(Object.keys(OVER).length===0) return;
+  if(!confirm('직접 수정한 텍스트를 모두 되돌립니다. 계속할까요?')) return;
+  OVER={};
+  render();
+};
 document.getElementById('btnPrompts').onclick=()=>{
   const txt=prompts(model()).map((p,i)=>`#${i+1} [${p.id}]\n${p.t}\n${NEG}`).join('\n\n');
   navigator.clipboard.writeText(txt);
@@ -737,16 +795,25 @@ document.getElementById('btnPrompts').onclick=()=>{
 document.getElementById('btnExport').onclick=()=>{
   const css=Array.from(document.styleSheets[0].cssRules).map(r=>r.cssText).join('\n');
   const P=PALETTES[S.palette];
+  const clone=document.getElementById('stage').cloneNode(true);
+  clone.querySelectorAll('[contenteditable]').forEach(el=>{
+    el.removeAttribute('contenteditable');
+    el.removeAttribute('spellcheck');
+    el.removeAttribute('data-edit');
+  });
+  const body=clone.innerHTML;
   const html=`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${val('iProduct')} 상세페이지</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>:root{--bg:${P.bg};--soft:${P.soft};--ink:${P.ink};--accent:${P.accent};--badgeBg:${P.badge}}
 ${css}
 body{background:#fff}
 .wrap{width:600px;margin:0 auto}
 .block{box-shadow:none;margin:0 auto}
 @media(max-width:640px){.wrap,.block{width:100%;height:auto;aspect-ratio:600/1050}}</style></head>
-<body><div class="wrap">${document.getElementById('stage').innerHTML}</div></body></html>`;
+<body><div class="wrap">${body}</div></body></html>`;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
   a.download='detail-page.html'; a.click();
