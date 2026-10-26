@@ -61,7 +61,28 @@
 > 사진은 **블록마다 개별로** 넣을 수 있습니다. 페이지 전체에 같은 사진을 쓰고 싶으면
 > 한 블록에 넣은 뒤 "이 슬롯 전체에 적용"을 누르세요.
 
-### 3. 저장
+### 3. 기술서 문서로 한 번에 채우기 (CLI)
+
+제품 기술서(.docx/.pdf/.md/.xlsx)를 넣으면 문구·스펙 표·인증·구성품·사용법이 자동으로 들어간 프로젝트 JSON이 나옵니다.
+
+```bash
+node cli/dpb.mjs parse 기술서.docx -o out/project.json        # 규칙 기반
+node cli/dpb.mjs parse 기술서.docx -o out/project.json --ai   # 문장까지 AI가
+node cli/dpb.mjs all   기술서.docx -o out/ --ai --images      # 프롬프트·이미지까지
+```
+
+그 JSON을 **[프로젝트 열기]** 로 고르면 끝입니다.
+배포 폴더에 함께 올렸다면 주소로 바로 열 수도 있습니다.
+
+```
+https://noroovirus.github.io/detail-page-builder/?p=projects/humidifier.json
+```
+
+→ 예시: [projects/humidifier.json](projects/humidifier.json) 로 열린 페이지
+
+자세한 사용법은 `cli/README.md` 참고.
+
+### 4. 저장
 - **자동 저장**: 입력값·테마는 브라우저에 자동 저장됩니다. 새로고침해도 유지.
 - **프로젝트 저장**: JSON 파일로 내려받아 다른 기기로 옮길 수 있습니다.
 - **불러오기**: 저장한 JSON을 그대로 복원.
@@ -86,6 +107,8 @@ git push
 
 ```
 index.html              빌더 본체 (단일 파일, 의존성 없음)
+projects/               CLI 가 만든 프로젝트 JSON (주소로 바로 열기)
+images/                 샘플 이미지
 .nojekyll               GitHub Pages Jekyll 비활성화
 ```
 

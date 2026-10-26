@@ -477,6 +477,7 @@ const S = { palette:'mint', badge:'circle', imgs:{1:null,2:null,3:null,4:null},
 let OVER = {};    /* 인라인 편집 텍스트: k0, k1, ... */
 let LAYOUT = {};  /* 요소별 레이아웃: {dx,dy,fs,align,color,z} */
 let IMGO = {};    /* 블록별 이미지 오버라이드: {src,fit,scale,x,y} */
+let DOVR = {};    /* 문서(기술서)에서 들어온 구조 데이터: specs, pkg, cert, guide ... */
 let SEL = null;   /* 현재 선택 요소 */
 const BLOCK_H = 1050;
 
@@ -503,10 +504,12 @@ function model(){
         space=val('iSpace'), brand=val('iBrand'), season=val('iSeason'), symptom=val('iSymptom');
   const sp=[1,2,3,4].map(i=>({v:val('s'+i+'v'), b:val('s'+i+'b')}));
   const short = product.replace(/^무선\s*/,'').replace(/^미니\s*/,'');
+  /* 히어로 둘째 줄: 이득 + 제품명이 너무 길면 제품명만 쓴다(3줄로 넘치는 것 방지) */
+  const hero2full = sp[0].b ? sp[0].b + ' ' + product : product;
   return {
     product, kicker, target, space, brand, season, symptom, short, sp,
     hero1:`${target}${josa(target,'을','를')} 위한 ${product}`,
-    hero2:`${sp[0].b} ${product}`,
+    hero2: hero2full.length > 18 ? product : hero2full,
     pr1h:`${season},\n${space}${josa(space,'이','가')} 건조해졌어요`,
     pr1p:`${season}${josa(season,'이','가')} 이어지면서 실내 습도는\n평소보다 크게 떨어집니다.\n가만히 있어도 입술이 당깁니다.`,
     pr1q:`“오늘 습도, 몇 %인지 아세요?”`,
@@ -540,13 +543,63 @@ function model(){
   };
 }
 
+/* ================= 구조 데이터 기본값 =================
+   기술서(스펙 문서)에서 뽑아낸 값이 없을 때 쓰는 기본 문안.
+   @target / @brand / @season / @product 는 렌더 시 실제 값으로 치환된다. */
+function defData(m){
+  return {
+    trans: { h:'그래서,\n어떤 가습기를\n골라야 할까요?', p:'@target이 실제로 오래 쓰는 기준' },
+    tech2: { h:'보이지 않는 곳까지\n같은 기준으로',
+             p:'물탱크는 분리형으로 설계해 세척이 쉽습니다.\n진동자는 교체 없이 오래 쓰도록 마감했습니다.\n물때가 남지 않도록 내부 코팅을 적용했습니다.' },
+    diagram: ['DIAGRAM · 구조 단면도','DETAIL · 내부 구조'],
+    tested: { h:'수치로 확인한\n실사용 성능',
+              p:'같은 조건에서 반복 측정했습니다. 표기 수치는 최대값이 아니라 평균 사용 조건 기준입니다.',
+              rows:[['소음',m.sp[0].v],['사용시간',m.sp[1].v],['용량',m.sp[2].v]] },
+    macro: [ {h:'손이 닿는 곳까지\n마감했습니다', en:'MATTE FINISH · SOFT TOUCH'},
+             {h:'USB-C 하나로\n충전은 간단하게', en:'USB-C · FAST CHARGE'} ],
+    cert: [['전기용품 안전인증','KC 인증 취득'],['전자파 적합성','적합성 평가 통과'],
+           ['유해물질 시험','RoHS 기준 충족'],['품질보증','구입일로부터 1년']],
+    pkg: [ {h:'구성품', rows:[['본체','1개'],['USB-C 케이블','1개'],['사용 설명서','1부'],['필터 (예비)','1개']]},
+           {h:'박스까지\n그대로 도착합니다', rows:[['포장 방식','완충재 3중'],['배송','평일 당일 출고'],['교환/반품','수령 후 7일']]} ],
+    specs: [['제품명','@product'],['모델명','@brand-01'],['소음',m.sp[0].v],['사용 시간',m.sp[1].v],
+            ['용량',m.sp[2].v],['분무 방식',m.sp[3].v+' '+m.sp[3].b],
+            ['재질','ABS · PP · 실리콘'],['전원','USB-C 5V / 1A'],['소비전력','3W'],
+            ['크기','지름 70mm × 높이 140mm'],['무게','210g'],
+            ['구성','본체 · 케이블 · 설명서 · 예비 필터'],['제조국','대한민국']],
+    guide: [ {h:'사용 방법', steps:[
+                ['물을 채웁니다','상단 캡을 열고 물탱크에 물을 채웁니다.\n정수된 물을 권장합니다.'],
+                ['뚜껑을 닫고 전원을 켭니다','버튼을 한 번 누르면 '+m.sp[3].v+' '+m.sp[3].b+'이 시작됩니다.'],
+                ['공간에 맞춰 조절합니다','취침 시에는 약하게, 건조한 날에는 강하게 사용하세요.']]},
+             {h:'관리 방법', steps:[
+                ['일주일에 한 번 세척','물탱크를 분리해 미지근한 물로 헹궈주세요.'],
+                ['필터 교체','사용 환경에 따라 2~3개월에 한 번 교체를 권장합니다.'],
+                ['장기 보관 시','물을 완전히 비우고 완전히 건조한 뒤 보관하세요.']]} ],
+    notice: ['제품 사진은 실제와 다를 수 있습니다.','측정값은 사용 환경에 따라 달라질 수 있습니다.',
+             '교환 및 반품은 수령 후 7일 이내 가능합니다.','단순 변심의 경우 왕복 배송비가 발생합니다.',
+             '품질 이상 시 구입일로부터 1년 무상 보증합니다.'],
+    cta: [ {h:m.ctaH, btn:'구매하기', note:'무료배송 · 평일 당일 출고'},
+           {h:'@season이 지나기 전에\n준비하세요', btn:'지금 구매하기', note:'1년 품질보증 · 7일 이내 교환'} ],
+    foot: { lines:['상호 @brand · 대표 홍길동','사업자등록번호 000-00-00000','통신판매업신고 2026-서울-0000',
+                   '고객센터 0000-0000 (평일 10:00–17:00)','주소 서울특별시 00구 00로 00'],
+            links:'이용약관 · 개인정보처리방침 · 배송/교환 안내' }
+  };
+}
+
 const badge = (no,label) => `<div class="badge ${S.badge}"><small>${label}</small><b>#${no}</b></div>`;
 
 /* ================= BLOCKS ================= */
 function blocks(m){
   const P = pal();
   const B = [];
-  const push = h => B.push(h);
+  const DEF = defData(m);
+  /* 기술서에서 들어온 값이 있으면 그걸, 없으면 기본 문안을 쓴다 */
+  const dv = k => (DOVR[k] !== undefined && DOVR[k] !== null ? DOVR[k] : DEF[k]);
+  const sub = s => String(s == null ? '' : s)
+    .split('@product').join(m.product).split('@brand').join(m.brand)
+    .split('@season').join(m.season).split('@target').join(m.target)
+    .split('@space').join(m.space).split('@short').join(m.short);
+  const push = h => B.push(sub(h));
+  const tx = s => String(s == null ? '' : s).replace(/\n/g,'<br>');
 
   push(`<section class="block b-hero">
     ${shot(1,'LIFESTYLE · HERO 600×1050')}
@@ -575,8 +628,8 @@ function blocks(m){
       <div class="q">${m.pr3q}</div></div>
     <div class="photo">${shot(3,'PRODUCT · MUTED')}</div></section>`);
 
-  push(`<section class="block b-trans"><h1>그래서,<br>어떤 가습기를<br>골라야 할까요?</h1>
-    <p>${m.target}이 실제로 오래 쓰는 기준</p></section>`);
+  push(`<section class="block b-trans"><h1>${dv('trans').h.replace(/\n/g,'<br>')}</h1>
+    <p>${dv('trans').p}</p></section>`);
 
   push(`<section class="block b-sol">
     <div class="photo">${shot(3,'STUDIO · PRODUCT')}</div>
@@ -621,22 +674,20 @@ function blocks(m){
     <div class="no">05 — TECHNOLOGY</div>
     <h1>${m.techH.replace(/\n/g,'<br>')}</h1>
     <p>${m.techP.replace(/\n/g,'<br>')}</p>
-    <div class="diagram">DIAGRAM · 구조 단면도</div></section>`);
+    <div class="diagram">${dv('diagram')[0]}</div></section>`);
 
   push(`<section class="block b-tech">
     <div class="no">05 — TECHNOLOGY</div>
-    <h1>보이지 않는 곳까지<br>같은 기준으로</h1>
-    <p>물탱크는 분리형으로 설계해 세척이 쉽습니다.<br>진동자는 교체 없이 오래 쓰도록 마감했습니다.<br>물때가 남지 않도록 내부 코팅을 적용했습니다.</p>
-    <div class="diagram">DETAIL · 내부 구조</div></section>`);
+    <h1>${dv('tech2').h.replace(/\n/g,'<br>')}</h1>
+    <p>${dv('tech2').p.replace(/\n/g,'<br>')}</p>
+    <div class="diagram">${dv('diagram')[1]}</div></section>`);
 
   push(`<section class="block b-pd">
     <div class="tagline">05 — TESTED</div>
-    <h1>수치로 확인한<br>실사용 성능</h1>
-    <p>같은 조건에서 반복 측정했습니다. 표기 수치는 최대값이 아니라 평균 사용 조건 기준입니다.</p>
+    <h1>${dv('tested').h.replace(/\n/g,'<br>')}</h1>
+    <p>${dv('tested').p}</p>
     <div class="stats">
-      <div class="stat"><b>${m.sp[0].v}</b><small>소음</small></div>
-      <div class="stat"><b>${m.sp[1].v}</b><small>사용시간</small></div>
-      <div class="stat"><b>${m.sp[2].v}</b><small>용량</small></div>
+      ${(dv('tested').rows||[]).slice(0,3).map(r=>`<div class="stat"><b>${r[1]}</b><small>${r[0]}</small></div>`).join('')}
     </div></section>`);
 
   push(`<section class="block b-emo">${shot(1,'EMOTION · NIGHT')}<div class="veil"></div>
@@ -647,22 +698,19 @@ function blocks(m){
 
   push(`<section class="block b-pm" style="background:${P.soft}">
     <div class="photo">${shot(2,'MACRO · SURFACE')}</div>
-    <div class="lower"><h1>손이 닿는 곳까지<br>마감했습니다</h1>
-      <div class="en">MATTE FINISH · SOFT TOUCH</div></div></section>`);
+    <div class="lower"><h1>${tx((dv('macro')[0]||{}).h)}</h1>
+      <div class="en">${(dv('macro')[0]||{}).en}</div></div></section>`);
 
   push(`<section class="block b-pm" style="background:${P.soft}">
     <div class="photo">${shot(2,'MACRO · PORT')}</div>
-    <div class="lower"><h1>USB-C 하나로<br>충전은 간단하게</h1>
-      <div class="en">USB-C · FAST CHARGE</div></div></section>`);
+    <div class="lower"><h1>${tx((dv('macro')[1]||{}).h)}</h1>
+      <div class="en">${(dv('macro')[1]||{}).en}</div></div></section>`);
 
   push(`<section class="block b-cert">
     <h1>${m.certH.replace(/\n/g,'<br>')}</h1>
     <div class="frame">CERTIFICATE · 인증서 이미지</div>
     <ul>
-      <li><b>전기용품 안전인증</b> KC 인증 취득</li>
-      <li><b>전자파 적합성</b> 적합성 평가 통과</li>
-      <li><b>유해물질 시험</b> RoHS 기준 충족</li>
-      <li><b>품질보증</b> 구입일로부터 1년</li>
+      ${dv('cert').map(r=>`<li><b>${r[0]}</b> ${r[1]}</li>`).join('')}
     </ul></section>`);
 
   push(`<section class="block b-test"><div class="q">“</div>
@@ -671,94 +719,62 @@ function blocks(m){
 
   push(`<section class="block b-pkg">
     <div class="photo">${shot(3,'STUDIO · PACKAGE')}</div>
-    <div class="copy"><h1>${m.pkgH}</h1>
+    <div class="copy"><h1>${tx((dv('pkg')[0]||{}).h)}</h1>
       <ul>
-        <li><span>본체</span><b>1개</b></li>
-        <li><span>USB-C 케이블</span><b>1개</b></li>
-        <li><span>사용 설명서</span><b>1부</b></li>
-        <li><span>필터 (예비)</span><b>1개</b></li>
+        ${((dv('pkg')[0]||{}).rows||[]).map(r=>`<li><span>${r[0]}</span><b>${r[1]}</b></li>`).join('')}
       </ul></div></section>`);
 
   push(`<section class="block b-pkg">
     <div class="photo">${shot(3,'STUDIO · BOX')}</div>
-    <div class="copy"><h1>박스까지<br>그대로 도착합니다</h1>
+    <div class="copy"><h1>${tx((dv('pkg')[1]||{}).h)}</h1>
       <ul>
-        <li><span>포장 방식</span><b>완충재 3중</b></li>
-        <li><span>배송</span><b>평일 당일 출고</b></li>
-        <li><span>교환/반품</span><b>수령 후 7일</b></li>
+        ${((dv('pkg')[1]||{}).rows||[]).map(r=>`<li><span>${r[0]}</span><b>${r[1]}</b></li>`).join('')}
       </ul></div></section>`);
 
   push(`<section class="block b-spec">
     <div class="no">06 — SPECIFICATION</div>
     <h1>${m.specH}</h1>
     <table>
-      <tr><th>제품명</th><td>${m.product}</td></tr>
-      <tr><th>모델명</th><td>${m.brand}-01</td></tr>
-      <tr><th>소음</th><td>${m.sp[0].v}</td></tr>
-      <tr><th>사용 시간</th><td>${m.sp[1].v}</td></tr>
-      <tr><th>용량</th><td>${m.sp[2].v}</td></tr>
-      <tr><th>분무 방식</th><td>${m.sp[3].v} ${m.sp[3].b}</td></tr>
+      ${dv('specs').slice(0,6).map(r=>`<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('')}
     </table></section>`);
 
   push(`<section class="block b-spec">
     <div class="no">06 — SPECIFICATION</div>
     <h1>상세 제원</h1>
     <table>
-      <tr><th>재질</th><td>ABS · PP · 실리콘</td></tr>
-      <tr><th>전원</th><td>USB-C 5V / 1A</td></tr>
-      <tr><th>소비전력</th><td>3W</td></tr>
-      <tr><th>크기</th><td>지름 70mm × 높이 140mm</td></tr>
-      <tr><th>무게</th><td>210g</td></tr>
-      <tr><th>구성</th><td>본체 · 케이블 · 설명서 · 예비 필터</td></tr>
-      <tr><th>제조국</th><td>대한민국</td></tr>
+      ${dv('specs').slice(6,14).map(r=>`<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('')}
     </table></section>`);
 
   push(`<section class="block b-guide">
-    <h1>${m.guideH}</h1>
-    <div class="step"><b>1</b><div><div class="t">물을 채웁니다</div>
-      <div class="d">상단 캡을 열고 물탱크에 물을 채웁니다.<br>정수된 물을 권장합니다.</div></div></div>
-    <div class="step"><b>2</b><div><div class="t">뚜껑을 닫고 전원을 켭니다</div>
-      <div class="d">버튼을 한 번 누르면 ${m.sp[3].v} ${m.sp[3].b}이 시작됩니다.</div></div></div>
-    <div class="step"><b>3</b><div><div class="t">공간에 맞춰 조절합니다</div>
-      <div class="d">취침 시에는 약하게, 건조한 날에는 강하게 사용하세요.</div></div></div></section>`);
+    <h1>${(dv('guide')[0]||{}).h}</h1>
+    ${((dv('guide')[0]||{}).steps||[]).map((s,i)=>`<div class="step"><b>${i+1}</b><div><div class="t">${s[0]}</div>
+      <div class="d">${String(s[1]).replace(/\n/g,'<br>')}</div></div></div>`).join('')}</section>`);
 
   push(`<section class="block b-guide">
-    <h1>관리 방법</h1>
-    <div class="step"><b>1</b><div><div class="t">일주일에 한 번 세척</div>
-      <div class="d">물탱크를 분리해 미지근한 물로 헹궈주세요.</div></div></div>
-    <div class="step"><b>2</b><div><div class="t">필터 교체</div>
-      <div class="d">사용 환경에 따라 2~3개월에 한 번 교체를 권장합니다.</div></div></div>
-    <div class="step"><b>3</b><div><div class="t">장기 보관 시</div>
-      <div class="d">물을 완전히 비우고 완전히 건조한 뒤 보관하세요.</div></div></div></section>`);
+    <h1>${(dv('guide')[1]||{}).h}</h1>
+    ${((dv('guide')[1]||{}).steps||[]).map((s,i)=>`<div class="step"><b>${i+1}</b><div><div class="t">${s[0]}</div>
+      <div class="d">${String(s[1]).replace(/\n/g,'<br>')}</div></div></div>`).join('')}</section>`);
 
   push(`<section class="block b-notice">
     <h1>구매 전 확인해주세요</h1>
-    <p>· 제품 사진은 실제와 다를 수 있습니다.<br>
-       · 측정값은 사용 환경에 따라 달라질 수 있습니다.<br>
-       · 교환 및 반품은 수령 후 7일 이내 가능합니다.<br>
-       · 단순 변심의 경우 왕복 배송비가 발생합니다.<br>
-       · 품질 이상 시 구입일로부터 1년 무상 보증합니다.</p></section>`);
+    <p>${dv('notice').map(l=>'· '+l).join('<br>\n       ')}</p></section>`);
 
   push(`<section class="block b-cta">
     <div class="photo">${shot(3,'STUDIO · CTA')}</div>
-    <div class="copy"><h1>${m.ctaH.replace(/\n/g,'<br>')}</h1>
-      <div class="btn">구매하기</div>
-      <div class="note">무료배송 · 평일 당일 출고</div></div></section>`);
+    <div class="copy"><h1>${tx((dv('cta')[0]||{}).h)}</h1>
+      <div class="btn">${(dv('cta')[0]||{}).btn}</div>
+      <div class="note">${(dv('cta')[0]||{}).note}</div></div></section>`);
 
   push(`<section class="block b-cta">
     <div class="photo">${shot(3,'STUDIO · FINAL')}</div>
-    <div class="copy"><h1>${m.season}이 지나기 전에<br>준비하세요</h1>
-      <div class="btn">지금 구매하기</div>
-      <div class="note">1년 품질보증 · 7일 이내 교환</div></div></section>`);
+    <div class="copy"><h1>${tx((dv('cta')[1]||{}).h)}</h1>
+      <div class="btn">${(dv('cta')[1]||{}).btn}</div>
+      <div class="note">${(dv('cta')[1]||{}).note}</div></div></section>`);
 
   push(`<section class="block b-foot">
     <h1>${m.brand}</h1>
-    <p>상호 ${m.brand} · 대표 홍길동<br>
-       사업자등록번호 000-00-00000<br>
-       통신판매업신고 2026-서울-0000<br>
-       고객센터 0000-0000 (평일 10:00–17:00)<br>
-       주소 서울특별시 00구 00로 00</p>
-    <div class="links">이용약관 · 개인정보처리방침 · 배송/교환 안내</div></section>`);
+    <p>${dv('foot').lines.join('<br>\n       ')}</p>
+    <div class="links">${dv('foot').links}</div></section>`);
 
   return B;
 }
@@ -957,7 +973,7 @@ const TEXT_IDS=['iProduct','iKicker','iTarget','iSpace','iBrand','iSeason','iSym
 function snapshot(){
   const d={};
   TEXT_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) d[id]=el.value; });
-  return {v:6, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO, custom:S.custom};
+  return {v:7, palette:S.palette, badge:S.badge, fields:d, overrides:OVER, layout:LAYOUT, images:IMGO, custom:S.custom, data:DOVR};
 }
 /* 사진까지 저장 시도 → 용량 초과면 사진만 빼고 저장 (글자·위치 편집은 절대 잃지 않게) */
 function persist(){
@@ -993,6 +1009,7 @@ function applyState(st){
     });
   }
   if(st.custom && typeof st.custom==='object') S.custom = Object.assign(S.custom, st.custom);
+  if(st.data && typeof st.data==='object' && !Array.isArray(st.data)) DOVR = st.data;
   if(st.fields) Object.entries(st.fields).forEach(([k,v])=>{
     const el=document.getElementById(k);
     if(el && typeof v==='string') el.value=v;
@@ -1448,17 +1465,20 @@ document.getElementById('btnSaveProj').onclick=()=>{
   a.click();
 };
 document.getElementById('btnLoadProj').onclick=()=>document.getElementById('fileProj').click();
+function syncUI(){
+  document.querySelectorAll('.pick').forEach(x=>x.classList.toggle('on',x.dataset.p===S.palette));
+  document.querySelectorAll('.shape').forEach(x=>x.classList.toggle('on',x.dataset.badge===S.badge));
+  const cp = document.getElementById('customPanel');
+  if(cp) cp.style.display = S.palette==='custom' ? '' : 'none';
+  if(S.palette==='custom' && typeof syncCustomUI==='function') syncCustomUI();
+}
 document.getElementById('fileProj').onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=ev=>{
     try{
       applyState(JSON.parse(ev.target.result));
-      document.querySelectorAll('.pick').forEach(x=>x.classList.toggle('on',x.dataset.p===S.palette));
-      document.querySelectorAll('.shape').forEach(x=>x.classList.toggle('on',x.dataset.badge===S.badge));
-      const cp = document.getElementById('customPanel');
-      cp.style.display = S.palette==='custom' ? '' : 'none';
-      if(S.palette==='custom') syncCustomUI();
+      syncUI();
       render();
     }catch(err){ alert('프로젝트 파일을 읽을 수 없습니다.'); }
   };
@@ -1466,8 +1486,18 @@ document.getElementById('fileProj').onchange=e=>{
   e.target.value='';
 };
 
-
-render();
+/* ?p=projects/foo.json — CLI 가 만든 프로젝트를 주소로 바로 열기 */
+(async function boot(){
+  const qp = new URLSearchParams(location.search).get('p');
+  if(qp){
+    try{
+      const res = await fetch(qp, {cache:'no-store'});
+      if(res.ok){ applyState(await res.json()); syncUI(); }
+      else console.warn('project not found:', qp);
+    }catch(err){ console.warn('project load failed:', err.message); }
+  }
+  render();
+})();
 </script>
 </body>
 </html>
