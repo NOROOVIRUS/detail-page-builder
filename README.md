@@ -68,7 +68,7 @@
 ```bash
 node cli/dpb.mjs parse 기술서.docx -o out/project.json        # 규칙 기반
 node cli/dpb.mjs parse 기술서.docx -o out/project.json --ai   # 문장까지 AI가
-node cli/dpb.mjs all   기술서.docx -o out/ --ai --images      # 프롬프트·이미지까지
+node cli/dpb.mjs check out/project.json                       # 빈 칸·넘침 검사
 ```
 
 그 JSON을 **[프로젝트 열기]** 로 고르면 끝입니다.
@@ -80,6 +80,7 @@ https://noroovirus.github.io/detail-page-builder/?p=projects/humidifier.json
 
 → 예시: [projects/humidifier.json](projects/humidifier.json) 로 열린 페이지
 
+이미지 생성은 CLI에 없습니다(2026-10-23 폐기). 사진은 빌더에 직접 넣습니다.
 자세한 사용법은 `cli/README.md` 참고.
 
 ### 4. 저장
