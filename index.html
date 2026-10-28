@@ -247,8 +247,12 @@
   .b-tech .no{font-size:11px;letter-spacing:.16em;font-weight:800;color:rgba(255,255,255,.45)}
   .b-tech h1{font-size:33px;font-weight:800;letter-spacing:-.03em;line-height:1.36;margin:18px 0 26px}
   .b-tech p{font-size:15.5px;color:rgba(255,255,255,.72);line-height:1.85}
-  .b-tech .diagram{margin-top:40px;height:300px;border:1px dashed rgba(255,255,255,.22);border-radius:12px;
+  .b-tech .diagram{margin-top:40px;height:300px;border:1px dashed rgba(255,255,255,.22);border-radius:12px;position:relative;overflow:hidden;
     display:flex;align-items:center;justify-content:center;font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.35)}
+  .b-tech .diagram .ph{background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);border-radius:12px}
+  .b-tech .diagram .ph span{color:rgba(255,255,255,.40)}
+  .b-tech .diagram:has(.img),.b-tech .diagram:has(.ph){border-color:transparent}
 
   .b-cert{background:var(--paper);padding:96px 60px;justify-content:center;text-align:center}
   .b-cert h1{font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.36;color:var(--ink)}
@@ -273,25 +277,25 @@
     border-bottom:1px solid #F0F1EF;color:#5F6875}
   .b-pkg li b{color:var(--ink)}
 
-  .b-spec{background:var(--soft);padding:96px 60px;justify-content:flex-start}
+  .b-spec{background:var(--soft);padding:96px 60px;justify-content:center}
   .b-spec .no{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--muted)}
-  .b-spec h1{font-size:32px;font-weight:800;letter-spacing:-.03em;margin:16px 0 36px;color:var(--ink)}
+  .b-spec h1{font-size:32px;font-weight:800;letter-spacing:-.03em;margin:16px 0 40px;color:var(--ink)}
   .b-spec table{width:100%;border-collapse:collapse}
-  .b-spec th,.b-spec td{text-align:left;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.08);font-size:14.5px}
+  .b-spec th,.b-spec td{text-align:left;padding:20px 0;border-bottom:1px solid rgba(0,0,0,.08);font-size:15px}
   .b-spec th{color:#8B9099;font-weight:600;width:40%}
   .b-spec td{font-weight:700;color:var(--ink)}
 
   .b-guide{background:var(--paper);padding:96px 60px;justify-content:center}
-  .b-guide h1{font-size:31px;font-weight:800;letter-spacing:-.03em;color:var(--ink);margin-bottom:36px}
-  .b-guide .step{display:flex;gap:18px;margin-bottom:28px}
-  .b-guide .step b{width:40px;height:40px;border-radius:50%;background:var(--bg);color:var(--ink);
-    display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
-  .b-guide .step .t{font-size:17px;font-weight:700;color:var(--ink)}
-  .b-guide .step .d{font-size:13.5px;color:#6B7280;line-height:1.65;margin-top:6px}
+  .b-guide h1{font-size:31px;font-weight:800;letter-spacing:-.03em;color:var(--ink);margin-bottom:46px}
+  .b-guide .step{display:flex;gap:18px;margin-bottom:42px}
+  .b-guide .step b{width:44px;height:44px;border-radius:50%;background:var(--bg);color:var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+  .b-guide .step .t{font-size:18.5px;font-weight:700;color:var(--ink)}
+  .b-guide .step .d{font-size:14px;color:#6B7280;line-height:1.7;margin-top:8px}
 
   .b-notice{background:var(--soft);padding:96px 60px;justify-content:center}
-  .b-notice h1{font-size:26px;font-weight:800;color:var(--ink);margin-bottom:28px;letter-spacing:-.02em}
-  .b-notice p{font-size:13.5px;color:#6B7280;line-height:2;padding-left:12px;border-left:2px solid var(--line)}
+  .b-notice h1{font-size:29px;font-weight:800;color:var(--ink);margin-bottom:34px;letter-spacing:-.02em}
+  .b-notice p{font-size:14.5px;color:#6B7280;line-height:2.15;padding-left:16px;border-left:2px solid var(--line)}
 
   .b-cta{justify-content:flex-end;text-align:center;background:var(--paper)}
   .b-cta .photo{position:absolute;left:0;right:0;top:0;height:56%;overflow:hidden}
@@ -533,7 +537,10 @@ function model(){
     })),
     emo: [`${space}에 조용히 놓여 있는 것만으로\n공기의 온도가 달라집니다`,
           `보이지 않는 것을 채우는 일,\n${short}${josa(short,'이','가')} 그 일을 합니다`,
-          `하루의 끝에서,\n숨이 편해지는 순간`],
+          `하루의 끝에서,\n숨이 편해지는 순간`,
+          `말라붙은 아침이\n조금씩 달라집니다`,
+          `창을 열지 않아도\n공기는 천천히 바뀝니다`,
+          `겨울이 지나갈 때까지\n곁에 두는 것`],
     techH:`물을 데우지 않고\n초음파로 흔들어 보냅니다`,
     techP:`히터 없이 진동자로 물을 미세 입자로 바꿉니다.\n열을 쓰지 않아 화상 위험이 없고, 전력 소모도 낮습니다.\n\n분무 입자는 5μm 이하로, 공기 중에 오래 머물며\n습도를 고르게 만듭니다.`,
     certH:`믿고 쓰실 수 있도록\n검증을 마쳤습니다`,
@@ -661,11 +668,11 @@ function blocks(m){
     push(`<section class="block b-emo">
       ${shot(i===2?3:1,'EMOTION '+p.no)}
       <div class="veil"></div>
-      <div class="copy"><h1>${m.emo[i%3].replace(/\n/g,'<br>')}</h1></div></section>`);
+      <div class="copy"><h1>${m.emo[i].replace(/\n/g,'<br>')}</h1></div></section>`);
   });
 
   push(`<section class="block b-emo">${shot(1,'EMOTION · WIDE')}<div class="veil"></div>
-    <div class="copy"><h1>${m.emo[0].replace(/\n/g,'<br>')}</h1></div></section>`);
+    <div class="copy"><h1>${m.emo[4].replace(/\n/g,'<br>')}</h1></div></section>`);
 
   push(`<section class="block b-gif">${shot(4,'GIF · MIST MOTION')}
     <div class="lbl">GIF — 분무 동작</div></section>`);
@@ -691,7 +698,7 @@ function blocks(m){
     </div></section>`);
 
   push(`<section class="block b-emo">${shot(1,'EMOTION · NIGHT')}<div class="veil"></div>
-    <div class="copy"><h1>${m.emo[1].replace(/\n/g,'<br>')}</h1></div></section>`);
+    <div class="copy"><h1>${m.emo[5].replace(/\n/g,'<br>')}</h1></div></section>`);
 
   push(`<section class="block b-gif">${shot(4,'GIF · BUTTON')}
     <div class="lbl">GIF — 버튼 조작</div></section>`);
